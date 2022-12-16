@@ -47,3 +47,6 @@
 
 2. 항공권 조회
 ![localhost_rest4Trip_prod_airline](https://user-images.githubusercontent.com/96568009/208057585-2350c256-794e-4a9e-a184-28ab30f70a6a.png)
+
+3. 호텔 예약
+![image](https://user-images.githubusercontent.com/96568009/208058495-df9a120f-57df-4e51-bf5a-07bc398c91be.png)
