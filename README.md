@@ -44,3 +44,6 @@
 ## 구현기능 미리보기
 1. 사이트 메인화면
 ![메인화면](https://user-images.githubusercontent.com/96568009/208056065-014fda8b-e303-4cbc-853b-c1ee57bf4c01.jpg)
+
+2. 항공권 조회
+![localhost_rest4Trip_prod_airline](https://user-images.githubusercontent.com/96568009/208057585-2350c256-794e-4a9e-a184-28ab30f70a6a.png)
