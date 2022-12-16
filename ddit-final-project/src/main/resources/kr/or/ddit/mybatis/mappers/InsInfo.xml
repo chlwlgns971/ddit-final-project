@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.or.ddit.insurance.insinfo.dao.InsInfoDAO">
+
+	<insert id="insertInsInfo" parameterType="InsInfoVO">
+		INSERT INTO INSINFO
+		(
+		PINF_NUM
+		, INS_NUM
+		, PIN_CODE
+		)VALUES(
+		  #{pinfNum,jdbcType=NUMERIC}
+		, #{insNum, jdbcType=NUMERIC}
+		, #{pinCode, jdbcType=VARCHAR}
+		)
+	</insert>
+
+</mapper>

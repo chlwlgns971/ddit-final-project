@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper
+	namespace="kr.or.ddit.member.company.dao.CompanyMemberDAO">
+	<select id="SelectCompanyMember" parameterType="String"
+		resultType="CompanyMemberVO">
+		SELECT
+		C.COM_ID
+		,TO_CHAR(C.COM_LOGIN, 'YYYY-MM-DD') AS COM_LOGIN
+		,C.COM_NAM
+		,C.COM_PHON
+		,C.COM_MAIL
+		,C.COM_CNAM
+		,C.COM_RNUM
+		,C.COM_ADDR
+		,C.COM_ADDR2
+		,C.COM_HPHON
+		,A.ACC_INTRO
+		,C.COM_CONS
+		FROM COMPANY C LEFT OUTER JOIN ACCOUNT A ON
+		A.ACC_ID=C.COM_ID
+		WHERE C.COM_ID=#{comId,jdbcType=VARCHAR}
+	</select>
+	<select id="categoryList" resultType="CategoryVO">
+		SELECT 
+		CAT_CODE
+		,CATU_CODE
+		,CAT_NAM
+		FROM
+		CATEGORY
+	</select>
+
+	<update id="updateCompanyMember" parameterType="CompanyMemberVO">
+		UPDATE COMPANY
+		SET
+		COM_NAM=#{comNam,jdbcType=VARCHAR}
+		,COM_PHON=#{comPhon,jdbcType=VARCHAR}
+		,COM_MAIL=#{comMail,jdbcType=VARCHAR}
+		,COM_CNAM=#{comCnam,jdbcType=VARCHAR}
+		,COM_ADDR2=#{comAddr2,jdbcType=VARCHAR}
+		,COM_HPHON=#{comHphon,jdbcType=VARCHAR}
+		,COM_CONS=#{comCons,jdbcType=VARCHAR}
+		WHERE
+		COM_ID=#{comId,jdbcType=VARCHAR}
+	</update>
+</mapper>

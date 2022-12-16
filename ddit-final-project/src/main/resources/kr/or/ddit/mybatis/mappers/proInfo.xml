@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.or.ddit.insurance.proinfo.dao.ProInfoDAO">	
+	<select id="selectProInfo" parameterType="int" resultType="proInfoVO">
+		SELECT PINF_NUM
+			 , PINF_NAM
+			 , PINF_TITLE
+			 , PINF_REA
+			 , PINF_B
+			 , PINF_S
+			 , PINF_P
+			 , PINF_PAY
+			 , PINF_BPAY
+			 , PINF_SPAY
+			 , PINF_PPAY
+		  FROM PROINFO
+		 WHERE PINF_NUM = #{pinfNum, jdbcType=NUMERIC}
+	</select>
+
+	<select id="selectProInfoList" resultType="proInfoVO">
+		SELECT PINF_NUM
+			 , PINF_NAM
+			 , PINF_TITLE
+			 , PINF_REA
+			 , PINF_B
+			 , PINF_S
+			 , PINF_P
+			 , PINF_PAY
+			 , PINF_BPAY
+			 , PINF_SPAY
+			 , PINF_PPAY
+		  FROM PROINFO
+	</select>
+	
+	<select id="maxProInfo" resultType="int">
+		SELECT MAX(PINF_NUM)
+		  FROM PROINFO
+	</select>
+	
+</mapper>

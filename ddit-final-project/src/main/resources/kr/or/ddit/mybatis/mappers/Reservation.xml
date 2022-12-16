@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.or.ddit.insurance.reservation.dao.ReservationDAO">
+	
+	<insert id="insertReservation" parameterType="ReservationVO">
+		
+		INSERT INTO RESERVATION
+		(
+		  RES_CODE
+		, RES_DATE
+		, RES_SDATE
+		, RES_EDATE
+		, RES_QTY
+		, PROD_NUM
+		, MEM_ID
+		, CHAR_CODE
+		, RES_STT
+		, PROD_PRICE
+		)VALUES(
+		  #{resCode, jdbcType=VARCHAR}
+		, SYSDATE
+		, #{resSdate, jdbcType=DATE}
+		, #{resEdate, jdbcType=DATE}
+		, #{resQty, jdbcType=NUMERIC}
+		, #{prodNum, jdbcType=NUMERIC}
+		, #{memId, jdbcType=VARCHAR}
+		, #{charCode, jdbcType=VARCHAR}
+		, 'RS'
+		, #{prodPrice, jdbcType=NUMERIC}	 
+		)
+	</insert>
+	
+
+
+	
+	
+
+</mapper>

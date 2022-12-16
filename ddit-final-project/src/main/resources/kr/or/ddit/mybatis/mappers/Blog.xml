@@ -1,0 +1,470 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.or.ddit.blog.dao.BlogDAO">
+	<resultMap type="BlogPostVO" id="blogPostListMap"
+		autoMapping="true">
+		<id property="postNum" column="POST_NUM" />
+	</resultMap>
+	<sql id="searchFrag">
+		<choose>
+			<when test="PagingVO.simpleCondition.searchType eq 'title'">
+				INSTR(POST_TITLE, #{PagingVO.simpleCondition.searchWord})> 0 
+			</when>
+			<when test="PagingVO.simpleCondition.searchType eq 'content'">
+				INSTR(POST_CONT, #{PagingVO.simpleCondition.searchWord})> 0 
+			</when>
+			<otherwise>
+				(INSTR(POST_TITLE, #{PagingVO.simpleCondition.searchWord})> 0 
+				OR
+				INSTR(POST_CONT, #{PagingVO.simpleCondition.searchWord})> 0)
+			</otherwise>
+		</choose>
+	</sql>
+	<sql id="scope">
+		<choose>
+			<when test="Scope eq 'subcribe'">
+				(POST_SCOPE='public' OR POST_SCOPE='subscription')
+			</when>
+			<when test="Scope eq 'public'">
+				(POST_SCOPE='public')
+			</when>
+		</choose>
+	</sql>
+	<insert id="insertBlogPost" parameterType="BlogPostVO">
+		<selectKey resultType="int" keyProperty="postNum"
+			order="BEFORE">
+			SELECT BLOGPOST_SEQ.nextval
+			FROM DUAL
+		</selectKey>
+		INSERT INTO BLOGPOST
+		(
+		POST_NUM
+		,POST_TITLE
+		,POST_CONT
+		,POST_DATE
+		,POST_SCOPE
+		,POST_REC
+		,POST_HIT
+		,POST_THUM
+		,BCATE_NUM
+		,BLOG_ID
+		)VALUES
+		(
+		#{postNum,jdbcType=NUMERIC}
+		, #{postTitle,jdbcType=VARCHAR}
+		, #{postCont,jdbcType=CLOB}
+		, SYSDATE
+		, #{postScope,jdbcType=VARCHAR}
+		, #{postRec,jdbcType=NUMERIC}
+		, #{postHit,jdbcType=NUMERIC}
+		, #{postThum,jdbcType=VARCHAR}
+		, #{bcateNum,jdbcType=NUMERIC}
+		, #{blogId,jdbcType=VARCHAR}
+		)
+	</insert>
+	<insert id="insertBlogRec" parameterType="Map">
+		INSERT INTO POSTREC
+		(
+			POST_NUM
+			,ACC_ID
+		)
+		VALUES
+		(
+			#{postNum,jdbcType=NUMERIC}
+			,#{accId,jdbcType=VARCHAR}
+		)
+	</insert>
+	
+	<insert id="insertSubcribe" parameterType="Map">
+		INSERT INTO SUBCRIBE
+		(
+			BLOG_ID, 
+			ACC_ID
+		)
+		VALUES
+		(
+			#{blogId, jdbcType=VARCHAR}
+			, #{accId, jdbcType=VARCHAR}
+		)
+	</insert>
+	
+	<insert id="createBlog" parameterType="BlogVO">
+		INSERT INTO BLOG
+		(
+			BLOG_ID
+			,BLOG_NAME
+			,BLOG_TEMP
+			,BLOG_NICKNAME
+			,BLOG_INTRO
+		)
+		VALUES
+		(
+			#{blogId, jdbcType=VARCHAR}
+			, #{blogName, jdbcType=VARCHAR}
+			, #{blogTemp, jdbcType=NUMERIC}
+			, #{blogNickname, jdbcType=VARCHAR}
+			, #{blogIntro, jdbcType=VARCHAR}
+		)
+	</insert>
+	
+	<insert id="createBlogCate" parameterType="list">
+		<foreach collection="list" item="item" index="index" separator=" " open="INSERT ALL" close="SELECT * FROM DUAL">
+                 INTO BLOGCATE  ( 
+                    BCATE_NUM
+					,BCATE_NAME
+					,BLOG_ID
+					,BCATE_IMG
+					,BCATE_IMGINFO              
+                ) VALUES(
+                    #{item.bcateNum, jdbcType=NUMERIC}
+                    ,#{item.bcateName, jdbcType=VARCHAR}
+                    ,#{item.blogId, jdbcType=VARCHAR}
+                    ,#{item.bcateImg, jdbcType=VARCHAR}
+                    ,#{item.bcateImginfo, jdbcType=VARCHAR}
+                )
+    	</foreach>	
+	</insert>
+	
+	<insert id="insertBlogBanner" parameterType="Map">
+		INSERT INTO BLOGIMG  
+		( 
+        	BIMG_SNAM
+			,BIMG_ONAM
+			,BIMG_LNAM
+			,BIMG_EXNAM
+			,BIMG_SIZE
+			,BIMG_FSIZE
+			,BLOG_ID
+			,BCATE_NUM              
+        ) 
+        VALUES(
+	         #{bimgSnam, jdbcType=VARCHAR}
+	         ,#{bimgOnam, jdbcType=VARCHAR}
+	         ,#{bimgLnam, jdbcType=VARCHAR}
+	         ,#{bimgExnam, jdbcType=VARCHAR}
+	         ,#{bimgSize, jdbcType=NUMERIC}
+	         ,#{bimgFsize, jdbcType=VARCHAR}
+	         ,#{blogId, jdbcType=VARCHAR}
+	         ,#{bcateNum, jdbcType=NUMERIC}
+        )
+	</insert>
+	
+	<select id="allBlogPostList" parameterType="Map" resultType="BlogPostVO">
+		WITH SORTEDBLOGPOST AS (
+		SELECT B.POST_NUM, B.POST_TITLE, B.BLOG_ID, C.BCATE_NAME, B.BCATE_NUM, B.POST_SCOPE,
+		TO_CHAR(TO_DATE(B.POST_DATE),'Mon fmDD,
+		YYYY','NLS_DATE_LANGUAGE=ENGLISH') POST_DATE
+		, B.POST_HIT, B.POST_REC, B.POST_THUM, BL.BLOG_NICKNAME, ACC_IMG, COUNT(R.REPLY_NUM) COUNT_REPLY
+		FROM BLOGPOST B INNER JOIN BLOGCATE C ON (B.BLOG_ID=C.BLOG_ID) 
+						INNER JOIN BLOG BL ON(BL.BLOG_ID=B.BLOG_ID)
+						INNER JOIN ACCOUNT A ON(B.BLOG_ID=A.ACC_ID)
+						LEFT OUTER JOIN REPLY R ON(B.POST_NUM=R.POST_NUM)
+		<where>
+			<if test="PagingVO.simpleCondition neq null and @org.apache.commons.lang3.StringUtils@isNotBlank(PagingVO.simpleCondition.searchWord)">
+				AND <include refid="searchFrag" />
+			</if>
+			<if test="Scope neq 'all'">
+				AND <include refid="scope"/>
+			</if>
+			AND (B.BCATE_NUM=C.BCATE_NUM AND B.BLOG_ID = #{blogId,jdbcType=VARCHAR})
+		</where>
+		GROUP BY B.POST_NUM, B.POST_TITLE, B.BLOG_ID, C.BCATE_NAME, B.BCATE_NUM, B.POST_SCOPE, TO_CHAR(TO_DATE(B.POST_DATE),'Mon fmDD,
+		YYYY','NLS_DATE_LANGUAGE=ENGLISH'), B.POST_HIT, B.POST_REC, B.POST_THUM, BL.BLOG_NICKNAME, ACC_IMG
+		ORDER BY POST_NUM DESC
+		), RNUMBLOGPOST AS (
+		SELECT ROWNUM RNUM, SORTEDBLOGPOST.*
+		FROM SORTEDBLOGPOST
+		)
+		SELECT *
+		FROM RNUMBLOGPOST
+       <![CDATA[
+			WHERE RNUM >= #{PagingVO.startRow} AND RNUM <= #{PagingVO.endRow}
+		]]>
+	</select>
+	
+	<select id="blogPostList" parameterType="Map"
+		resultType="BlogPostVO">
+		WITH SORTEDBLOGPOST AS (
+		SELECT B.POST_NUM, B.POST_TITLE, B.BLOG_ID, C.BCATE_NAME, B.BCATE_NUM, B.POST_SCOPE,
+		TO_CHAR(TO_DATE(B.POST_DATE),'Mon fmDD,
+		YYYY','NLS_DATE_LANGUAGE=ENGLISH') POST_DATE
+		, B.POST_HIT, B.POST_REC, B.POST_THUM, BL.BLOG_NICKNAME, ACC_IMG, COUNT(R.REPLY_NUM) COUNT_REPLY
+		FROM BLOGPOST B INNER JOIN BLOGCATE C ON (B.BLOG_ID=C.BLOG_ID) 
+						INNER JOIN BLOG BL ON(BL.BLOG_ID=B.BLOG_ID)
+						INNER JOIN ACCOUNT A ON(BL.BLOG_ID=A.ACC_ID)
+						LEFT OUTER JOIN REPLY R ON(B.POST_NUM=R.POST_NUM)
+		<where>
+			<if test="PagingVO.simpleCondition neq null and @org.apache.commons.lang3.StringUtils@isNotBlank(PagingVO.simpleCondition.searchWord)">
+				AND <include refid="searchFrag" />
+			</if>
+			<if test="Scope neq 'all'">
+				AND <include refid="scope"/>
+			</if>
+			AND (B.BCATE_NUM=C.BCATE_NUM AND B.BLOG_ID = #{blogId,jdbcType=VARCHAR} AND B.BCATE_NUM = #{cateNum})
+		</where>
+		GROUP BY B.POST_NUM, B.POST_TITLE, B.BLOG_ID, C.BCATE_NAME, B.BCATE_NUM, B.POST_SCOPE, TO_CHAR(TO_DATE(B.POST_DATE),'Mon fmDD,
+		YYYY','NLS_DATE_LANGUAGE=ENGLISH'), B.POST_HIT, B.POST_REC, B.POST_THUM, BL.BLOG_NICKNAME, ACC_IMG
+		ORDER BY POST_NUM DESC
+		), RNUMBLOGPOST AS (
+		SELECT ROWNUM RNUM, SORTEDBLOGPOST.*
+		FROM SORTEDBLOGPOST
+		)
+		SELECT *
+		FROM RNUMBLOGPOST
+       <![CDATA[
+			WHERE RNUM >= #{PagingVO.startRow} AND RNUM <= #{PagingVO.endRow}
+		]]>
+	</select>
+	
+	<select id="blogPostView" parameterType="int" resultType="BlogPostVO">
+		SELECT POST_NUM
+		,B.POST_TITLE
+		,B.POST_CONT
+		,TO_CHAR(TO_DATE(B.POST_DATE),'MonthfmDD, YYYY','NLS_DATE_LANGUAGE=ENGLISH') POST_DATE
+		,B.POST_SCOPE
+		,B.POST_HIT
+		,B.BCATE_NUM
+		,C.BCATE_NAME
+		,B.BLOG_ID
+		,B.POST_REC
+		, BL.BLOG_NICKNAME
+		FROM BLOGPOST B INNER JOIN BLOGCATE C ON (B.BLOG_ID=C.BLOG_ID) INNER JOIN BLOG BL ON(BL.BLOG_ID=B.BLOG_ID)
+		WHERE
+		B.POST_NUM = #{postNum, jdbcType=NUMERIC} AND B.BCATE_NUM=C.BCATE_NUM
+	</select>
+	
+	<select id="travelPostList" parameterType="PagingVO" resultType="BlogPostVO">
+		WITH SORTEDTRAVELPOST AS (
+        SELECT POST_NUM, POST_TITLE, TO_CHAR(TO_DATE(POST_DATE),'Mon fmDD, YYYY','NLS_DATE_LANGUAGE=ENGLISH') 
+        POST_DATE , POST_HIT, POST_REC, POST_THUM, POST_CONT, BLOG_NICKNAME, BLOG_ID
+        FROM (SELECT BLOGPOST.POST_NUM POST_NUM,
+			BLOGPOST.POST_TITLE POST_TITLE,
+			BLOGPOST.POST_CONT POST_CONT,
+			BLOGPOST.POST_DATE POST_DATE,
+			BLOGPOST.POST_SCOPE POST_SCOPE,
+			BLOGPOST.POST_HIT POST_HIT,
+			BLOGPOST.BCATE_NUM BCATE_NUM,
+			BLOGPOST.BLOG_ID BLOG_ID,
+			BLOGPOST.POST_REC POST_REC,
+			BLOGPOST.POST_THUM POST_THUM,
+			BLOG.BLOG_NAME BLOG_NAME,
+			BLOG.BLOG_TEMP BLOG_TEMP,
+			BLOG.BLOG_NICKNAME BLOG_NICKNAME,
+			BLOG.BLOG_INTRO BLOG_INTRO 
+        	FROM BLOGPOST INNER JOIN BLOG ON BLOG.BLOG_ID = BLOGPOST.BLOG_ID
+        <where>
+			<if test="simpleCondition neq null and @org.apache.commons.lang3.StringUtils@isNotBlank(simpleCondition.searchWord)">
+				AND (INSTR(POST_TITLE, #{simpleCondition.searchWord})> 0 
+				OR INSTR(POST_CONT, #{simpleCondition.searchWord})> 0)
+			</if>
+			AND (BCATE_NUM=2 AND POST_SCOPE='public')
+		</where>
+        ORDER BY POST_DATE DESC)), RNUMBLOGPOST AS (
+		SELECT ROWNUM RNUM, SORTEDTRAVELPOST.*
+		FROM SORTEDTRAVELPOST
+		)
+        SELECT *
+		FROM RNUMBLOGPOST
+		<![CDATA[WHERE RNUM >= #{startRow} AND RNUM <= #{endRow}]]>
+	</select>
+		
+	<select id="weekTopRecPostList" resultType="BlogPostVO">
+		SELECT POST_TITLE, POST_REC, TO_CHAR(TO_DATE(POST_DATE),'Mon fmDD, YYYY','NLS_DATE_LANGUAGE=ENGLISH') 
+        POST_DATE, POST_THUM, POST_NUM, ROWNUM
+		FROM (SELECT POST_TITLE, POST_REC, POST_DATE, POST_THUM, POST_NUM FROM BLOGPOST WHERE BCATE_NUM=2 AND POST_SCOPE='public' ORDER BY POST_REC DESC) 
+		 <![CDATA[
+			WHERE ROWNUM<=10 AND POST_DATE >= TO_CHAR(SYSDATE-7,'YYMMDD')
+		]]>
+	</select>
+	
+	<select id="weekTopHitPostList" resultType="BlogPostVO">
+		SELECT POST_TITLE, POST_HIT, TO_CHAR(TO_DATE(POST_DATE),'Mon fmDD, YYYY','NLS_DATE_LANGUAGE=ENGLISH') 
+        POST_DATE, POST_THUM, POST_NUM, ROWNUM
+		FROM (SELECT POST_TITLE, POST_HIT, POST_DATE, POST_THUM, POST_NUM FROM BLOGPOST WHERE BCATE_NUM=2 AND POST_SCOPE='public' ORDER BY POST_HIT DESC) 
+		 <![CDATA[
+			WHERE ROWNUM<=10 AND POST_DATE >= TO_CHAR(SYSDATE-7,'YYMMDD')
+		]]>
+	</select>
+	
+	<select id="recentSubcribePostList" parameterType="String" resultType="BlogPostVO">
+		SELECT POST_TITLE, TO_CHAR(TO_DATE(POST_DATE),'Mon fmDD, YYYY','NLS_DATE_LANGUAGE=ENGLISH') 
+        POST_DATE, POST_THUM, POST_NUM, BLOG_ID, BLOG_NICKNAME
+		FROM (SELECT B.POST_TITLE, B.POST_REC, B.POST_DATE, B.POST_THUM, B.POST_NUM, B.BLOG_ID, BL.BLOG_NICKNAME
+		FROM BLOGPOST B INNER JOIN SUBCRIBE S ON(B.BLOG_ID=S.BLOG_ID) INNER JOIN BLOG BL ON(B.BLOG_ID = BL.BLOG_ID)
+		WHERE S.ACC_ID=#{accId} AND BCATE_NUM=2 AND POST_SCOPE IN('public','subscription') ORDER BY B.POST_DATE DESC) 
+		<![CDATA[
+			WHERE ROWNUM<=10
+		]]>	
+	</select>
+	
+	<select id="blogInfo" parameterType="String" resultType="BlogVO">
+		SELECT BLOG_ID, BLOG_NAME, BLOG_TEMP, BLOG_NICKNAME, BLOG_INTRO, ACC_IMG
+		FROM BLOG INNER JOIN ACCOUNT ON BLOG_ID=ACC_ID
+		WHERE BLOG_ID = #{blogId}
+	</select>
+	
+	<select id="checkBlog" parameterType="String" resultType="int">
+		SELECT COUNT(BLOG_ID)
+		FROM BLOG
+		WHERE BLOG_ID = #{blogId}
+	</select>
+	
+	<select id="cateInfo" parameterType="String" resultType="BlogCateVO">
+		SELECT BLOG_ID, BCATE_NUM, BCATE_NAME, BCATE_IMG, BCATE_IMGINFO
+		FROM BLOGCATE
+		WHERE BLOG_ID = #{blogId}
+		ORDER BY BCATE_NUM
+	</select>
+	
+	<select id="countTotalPost" parameterType="Map" resultType="int">
+		SELECT COUNT(POST_NUM)
+		FROM BLOGPOST
+		<where>
+			<if test="PagingVO.simpleCondition neq null and @org.apache.commons.lang3.StringUtils@isNotBlank(PagingVO.simpleCondition.searchWord)">
+				AND <include refid="searchFrag" />
+			</if>
+			<if test="Scope neq 'all'">
+				AND <include refid="scope"/>
+			</if>
+			AND BLOG_ID = #{blogId,jdbcType=VARCHAR}
+		</where>
+	</select>
+	
+	<select id="countCategoryPost" parameterType="Map" resultType="int">
+		SELECT COUNT(POST_NUM)
+		FROM BLOGPOST
+		<where>
+			<if test="PagingVO.simpleCondition neq null and @org.apache.commons.lang3.StringUtils@isNotBlank(PagingVO.simpleCondition.searchWord)">
+				AND <include refid="searchFrag" />
+			</if>
+			<if test="Scope neq 'all'">
+				AND <include refid="scope"/>
+			</if>
+			AND BLOG_ID = #{blogId,jdbcType=VARCHAR} AND BCATE_NUM = #{cateNum}
+		</where>
+	</select>
+	
+	<select id="countTravelPost" parameterType="PagingVO" resultType="int">
+		SELECT COUNT(POST_NUM) 
+		FROM BLOGPOST
+		<where>
+			<if test="simpleCondition neq null and @org.apache.commons.lang3.StringUtils@isNotBlank(simpleCondition.searchWord)">
+				AND (INSTR(POST_TITLE, #{simpleCondition.searchWord})> 0 
+				OR INSTR(POST_CONT, #{simpleCondition.searchWord})> 0)
+			</if>
+			AND BCATE_NUM=2 AND POST_SCOPE='public'
+		</where>
+	</select>
+	
+	<select id="postRec" parameterType="int" resultType="int">
+		SELECT
+		POST_REC
+		FROM BLOGPOST
+		WHERE POST_NUM = #{postNum}
+	</select>
+	<select id="ischeckedRec" parameterType="Map" resultType="int">
+		SELECT
+		COUNT(ACC_ID)
+		FROM POSTREC
+		WHERE POST_NUM = #{postNum} AND ACC_ID = #{accId}
+	</select>
+	
+	<select id="blogCateInfo" parameterType="Map" resultType="BlogCateVO">
+		SELECT BCATE_NAME, BCATE_IMG, BCATE_IMGINFO
+		FROM BLOGCATE
+		WHERE BLOG_ID = #{blogId} AND BCATE_NUM = #{cateNum}
+	</select>
+	
+	<select id="checkSubcribe" parameterType="Map" resultType="int">
+		SELECT
+		COUNT(ACC_ID)
+		FROM SUBCRIBE
+		WHERE BLOG_ID = #{blogId} AND ACC_ID = #{accId}
+	</select>
+	
+	<select id="getCateInfo" parameterType="Map" resultType="BlogCateVO">
+		SELECT BCATE_NUM, BCATE_NAME, BLOG_ID, BCATE_IMG, BCATE_IMGINFO
+		FROM BLOGCATE
+		WHERE BLOG_ID = #{blogId} AND BCATE_NUM = #{bcateNum}
+	</select>
+	
+	<select id="getBlogBanner" parameterType="Map" resultType="BlogImgVO">
+		SELECT BIMG_SNAM, BIMG_ONAM, BIMG_LNAM, BIMG_EXNAM, BIMG_SIZE
+		, BIMG_FSIZE, BLOG_ID, BCATE_NUM
+		FROM BLOGIMG
+		WHERE BLOG_ID = #{blogId} AND BCATE_NUM = #{bcateNum}
+	</select>
+	
+	<update id="updateBlogPost" parameterType="BlogPostVO">
+		UPDATE BLOGPOST
+		SET
+		POST_TITLE = #{postTitle,jdbcType=VARCHAR}
+		,POST_CONT = #{postCont,jdbcType=CLOB}
+		,POST_SCOPE = #{postScope,jdbcType=VARCHAR}
+		,BCATE_NUM = #{bcateNum,jdbcType=NUMERIC}
+		,POST_THUM = #{postThum,jdbcType=VARCHAR}
+		,POST_DATE = SYSDATE
+		WHERE POST_NUM = #{postNum}
+	</update>
+	
+	<update id="updateBlog" parameterType="BlogVO">
+		UPDATE BLOG
+		SET
+		BLOG_NAME = #{blogName}
+		,BLOG_TEMP = #{blogTemp}
+		,BLOG_NICKNAME = #{blogNickname}
+		,BLOG_INTRO = #{blogIntro}
+		WHERE BLOG_ID = #{blogId}
+	</update>
+	
+	<update id="incPostHit" parameterType="int">
+		UPDATE BLOGPOST
+		SET
+		POST_HIT = POST_HIT + 1
+		WHERE POST_NUM = #{postNum}
+	</update>
+	<update id="incPostRec" parameterType="int">
+		UPDATE BLOGPOST
+		SET
+		POST_REC = POST_REC + 1
+		WHERE POST_NUM = #{postNum}
+	</update>
+	<update id="decPostRec" parameterType="int">
+		UPDATE BLOGPOST
+		SET
+		POST_REC = POST_REC - 1
+		WHERE POST_NUM = #{postNum}
+	</update>
+	<update id="updateBlogCate" parameterType="BlogCateVO">
+		UPDATE BLOGCATE
+		SET
+		BCATE_NAME = #{bcateName},
+		BCATE_IMG = #{bcateImg},
+		BCATE_IMGINFO = #{bcateImginfo}
+		WHERE BCATE_NUM = #{bcateNum} AND BLOG_ID = #{blogId}
+	</update>
+	<delete id="deleteBlogPost" parameterType="int">
+		DELETE FROM BLOGPOST
+		WHERE POST_NUM = #{postNum}
+	</delete>
+	<delete id="decreaseBlogRec" parameterType="Map">
+	 DELETE FROM POSTREC
+	 WHERE POST_NUM = #{postNum} AND ACC_ID = #{accId}
+	</delete>
+	<delete id="deleteBlogRec">
+		DELETE FROM POSTREC
+		WHERE POST_NUM = #{postNum}
+	</delete>
+	<delete id="removeSubcribe" parameterType="Map">
+		DELETE FROM SUBCRIBE
+		WHERE BLOG_ID = #{blogId} AND ACC_ID = #{accId}
+	</delete>
+	<delete id="deleteSubcribe" parameterType="String">
+		DELETE FROM SUBCRIBE
+		WHERE BLOG_ID = #{blogId}
+	</delete>
+	<delete id="deleteBlogBanner" parameterType="Map">
+		DELETE FROM BLOGIMG
+		WHERE BLOG_ID = #{blogId} AND BCATE_NUM = #{bcateNum}
+	</delete>
+</mapper>

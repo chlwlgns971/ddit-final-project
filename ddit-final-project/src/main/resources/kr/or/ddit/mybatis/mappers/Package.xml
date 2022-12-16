@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.or.ddit.prod.packageTrip.dao.PackageDAO">
+	
+	<select id="getContinents" resultType="CategoryVO">
+		SELECT CAT_CODE
+			,CAT_NAM
+		FROM CATEGORY
+		WHERE   CATU_CODE='NAT'
+	</select>
+	
+	
+	
+	<select id="getNations" resultType="CategoryVO" parameterType="string">
+		SELECT  CAT_CODE
+	        	,CAT_NAM
+		FROM    CATEGORY
+		WHERE   CATU_CODE= #{continentName}
+	</select>
+	
+	<select id="getcities" resultType="CategoryVO"
+		parameterType="string">
+		SELECT CAT_CODE
+		,CAT_NAM
+		FROM CATEGORY
+		WHERE CATU_CODE=
+		#{countryName}
+	</select>
+	<select id="selectPackage" parameterType="int"
+		resultType="PackageVO">
+		SELECT
+		A.PKG_NUM
+		,A.PKG_PRICE
+		,A.PKG_CONT
+		,A.PKG_FLIGHT
+		,TO_CHAR(A.PKG_SDATE, 'YYYY-MM-DD') AS PKG_SDATE
+		,TO_CHAR(A.PKG_EDATE, 'YYYY-MM-DD') AS PKG_EDATE
+		,B.PROD_NAM
+		,B.PROD_CODE
+		FROM PACKAGE A JOIN PROD B
+		ON A.PKG_NUM=B.PROD_NUM
+		WHERE PKG_NUM=#{pkgNum}
+	</select>
+	
+	
+</mapper>

@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE tiles-definitions PUBLIC "-//Apache Software Foundation//DTD Tiles Configuration 3.0//EN" "http://tiles.apache.org/dtds/tiles-config_3_0.dtd" >
+<!--  [[개정이력(Modification Information)]]       -->
+<!--  수정일        수정자     수정내용               -->
+<!-- 2022.11.09	최지훈	블로그템플릿 tiles 제작 -->
+<!--  ==========   ======    ==============        -->
+<!--  2022. 11. 08.}     최지훈     최초작성               -->
+<!--  Copyright (c) 2022 by DDIT All right reserved -->
+<tiles-definitions>
+	<definition name="site" template="/WEB-INF/views/templates/mainTemplate.jsp">
+		<put-attribute name="title" value="여행의 정서, 여정" />
+		<put-attribute name="preScript" value="/WEB-INF/views/includee/preScript.jsp"/>
+  		<put-attribute name="headerMenu" value="/WEB-INF/views/includee/headerMenu2.jsp"/>
+  		<put-attribute name="main" value="/WEB-INF/views/main.jsp" />
+  		<put-attribute name="modal" value="/WEB-INF/views/login/loginMenu.jsp"/>
+  		<put-attribute name="footer" value="/WEB-INF/views/includee/footer.jsp"/>
+  		<put-attribute name="postScript" value="/WEB-INF/views/includee/postScript.jsp"/>
+	</definition>
+	<definition name="blog01" template="/WEB-INF/views/templates/blog/blogTemplate01.jsp">
+		<put-attribute name="title" value="여행의 정서, 여정" />
+		<put-attribute name="preScript" value="/WEB-INF/views/includee/blog/temp01/preScript.jsp"/>
+  		<put-attribute name="footer" value="/WEB-INF/views/includee/blog/temp01/footer.jsp"/>
+  		<put-attribute name="postScript" value="/WEB-INF/views/includee/blog/temp01/postScript.jsp"/>
+	</definition>
+	<definition name="kmb_template" template="/WEB-INF/views/templates/mypage.jsp">
+		<put-attribute name="title" value="여행의 정서, 여정." />
+		<put-attribute name="preScript" value="/WEB-INF/views/includee/preScript.jsp"/>
+  		<put-attribute name="headerMenu" value="/WEB-INF/views/includee/headerMenu.jsp"/>
+  		<put-attribute name="main" value="/WEB-INF/views/main.jsp" />
+  		<put-attribute name="footer" value="/WEB-INF/views/includee/footer.jsp"/>
+  		<put-attribute name="postScript" value="/WEB-INF/views/includee/postScript.jsp"/>
+  		<put-attribute name="kmbPlugin" value="/WEB-INF/views/myPage/member/kmbPlugin.jsp"/>
+		<put-attribute name="kmbCSS" value="/WEB-INF/views/myPage/member/kmbCss.jsp"/>
+	</definition>
+		
+<!-- extends를 통해 부모를 상속받을 수 있음 -->
+	<definition name="main" extends="site">	
+		<put-attribute name="headerMenu" value="/WEB-INF/views/includee/headerMenu.jsp"/>
+		<put-attribute name="main" value="/WEB-INF/views/main.jsp" />
+	</definition>
+	
+	<!-- Blog Tiles -->
+	<definition name="blog/blogMainPage" extends="site">	
+		<put-attribute name="main" value="/WEB-INF/views/blog/blogMainPage.jsp" />
+	</definition>
+	<definition name="blog/01/**" extends="blog01">	
+		<put-attribute name="leftMenu" value="/WEB-INF/views/includee/blog/temp01/leftMenu.jsp" />
+		<put-attribute name="main" value="/WEB-INF/views/blog/temp01/{1}.jsp" />
+	</definition>
+	
+	<!-- 여행지 Tiles -->
+	<definition name="destination/**" extends="site">	
+<!-- 		<put-attribute name="preScript" value="/WEB-INF/views/includee/destination/preScript.jsp" /> -->
+		<put-attribute name="main" value="/WEB-INF/views/destination/{1}.jsp" />
+		<put-attribute name="postScript" value="/WEB-INF/views/includee/destination/postScript.jsp" />
+	</definition>
+	
+	<!-- 캘린더 Tiles -->
+	<definition name="myPage/calenderList" extends="kmb_template">
+		<put-attribute name="leftMenu" value="/WEB-INF/views/myPage/member/leftMenu.jsp"/>
+		<put-attribute name="main" value="/WEB-INF/views/calender/calenderList.jsp"/>
+	</definition>
+	<definition name="calender/**" extends="site">
+		<put-attribute name="main" value="/WEB-INF/views/calender/{1}.jsp"/>
+<!-- 		<put-attribute name="postScript" value="/WEB-INF/views/includee/destination/postScript.jsp" /> -->
+	</definition>
+	
+	
+	<!-- 상품 결제 Tiles -->
+	<definition name="booking/**" extends="site">
+		<put-attribute name="preScript" value="/WEB-INF/views/includee/booking/preScript.jsp"/>
+		<put-attribute name="main" value="/WEB-INF/views/booking/{1}.jsp"/>
+	</definition>
+	
+	<!-- Prod Tiles -->
+	<definition name="prod/**" extends="site">	
+		<put-attribute name="main" value="/WEB-INF/views/prod/{1}.jsp" />
+	</definition>
+	
+	
+</tiles-definitions>

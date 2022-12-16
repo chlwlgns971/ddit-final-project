@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+
+<mapper namespace="kr.or.ddit.mileage.dao.MileageDAO">
+
+<sql id="searchMemFrag">
+		WHERE MEM_ID=#{detailMap.memId}
+		<trim prefix="AND (" suffix=")">
+			<if test="@org.apache.commons.lang3.StringUtils@isNotBlank(simpleCondition.searchWord)">
+				<choose>
+					<when test="'name' eq simpleCondition.searchType">
+						WHERE=INSTR(CHAR_CODE, #{simpleCondition.searchWord}) > 0
+					</when>
+					<otherwise>
+						WHERE=INSTR(CHAR_CODE, #{simpleCondition.searchWord}) > 0
+					</otherwise>
+				</choose>
+			</if>
+		</trim>
+	</sql>
+	
+	<select id="companyProductList" parameterType="PagingVO" resultType="UseMileageVO">
+	SELECT *
+		FROM(
+			SELECT A.*, ROWNUM RNUM
+			FROM(
+				SELECT	
+				TO_CHAR(UMIL_DATE, 'YYYY-MM-DD') AS UMIL_DATE
+				,MEM_ID
+				,CHAR_CODE
+				,UMIL_MILAGE
+				FROM USEMILEAGE
+				<include refid="searchMemFrag"/>
+			)A
+		)B
+		<![CDATA[
+		WHERE RNUM>=#{startRow} AND RNUM <=#{endRow}
+		]]>
+	</select>
+	<select id="retrieveMLCount" parameterType="UseMileageVO" resultType="int">
+		SELECT	COUNT(*)
+		FROM USEMILEAGE
+		<include refid="searchMemFrag"/>
+	</select>
+
+	<select id="selectMileageHistory" parameterType="String" resultType="UseMileageVO">
+		SELECT
+		MEM_ID
+		,TO_CHAR(UMIL_DATE, 'YYYY-MM-DD') AS UMIL_DATE
+		,CHAR_CODE
+		,UMIL_MILAGE
+		FROM USEMILEAGE
+		WHERE MEM_ID=#{memId}
+	</select>
+</mapper>

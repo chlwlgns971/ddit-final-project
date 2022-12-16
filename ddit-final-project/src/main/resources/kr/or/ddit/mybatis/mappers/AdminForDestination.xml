@@ -1,0 +1,98 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.or.ddit.admin.dao.AdminManageDestinationDAO">
+	<select id="returnContientList" resultType="CategoryVO">
+		SELECT	CAT_CODE
+				,CAT_NAM
+		FROM	CATEGORY
+		WHERE	CATU_CODE = 'NAT'
+	</select>
+	<select id="returnNataionList" parameterType="string" resultType="CategoryVO">
+		SELECT	CAT_CODE
+				,CAT_NAM
+		FROM	CATEGORY
+		WHERE	CATU_CODE = #{continent}
+	</select>
+	<select id="returnDestList" parameterType="string" resultType="CategoryVO">
+		SELECT	CAT_CODE
+				,CAT_NAM
+		FROM	CATEGORY
+		WHERE	CATU_CODE = #{nation}
+	</select>
+	<select id="getDestination" parameterType="string" resultType="DestinationVO">
+			SELECT	AREA_CODE,
+				    DEST_LANG,
+				    DEST_EXTEN,
+				    DEST_POPUL,
+				    DEST_TIME,
+				    DEST_RELIG,
+				    DEST_VOLT,
+				    DEST_CUR,
+				    DEST_VISA,
+				    DEST_PRICE,
+				    DEST_WEATHER,
+				    DEST_BTIME,
+				    DEST_INFO,
+				    DEST_CONV,
+				    DEST_AIR,
+				    DEST_BANNER,
+				    DEST_WIMG,
+				    DEST_IMG1,
+				    DEST_IMG2,
+				    DEST_IMG3
+			FROM	DESTINATION
+			WHERE	AREA_CODE = #{destCode}
+	</select>
+	<update id="editDest" parameterType="DestinationVO">
+		UPDATE	DESTINATION
+		SET		AREA_CODE = #{areaCode},
+			    DEST_LANG = #{destLang},
+			    DEST_EXTEN = #{destExten},
+			    DEST_POPUL = #{destPopul},
+			    DEST_TIME = #{destTime},
+			    DEST_RELIG = #{destRelig},
+			    DEST_VOLT = #{destVolt},
+			    DEST_CUR = #{destCur},
+			    DEST_VISA = #{destVisa},
+			    DEST_PRICE = #{destPrice},
+			    DEST_WEATHER = #{destWeather},
+			    DEST_BTIME = #{destBtime},
+			    DEST_INFO = #{destInfo},
+			    DEST_CONV = #{destConv},
+			    DEST_AIR = #{destAir}
+			    
+		WHERE	AREA_CODE = #{areaCode}
+	</update>
+	
+	<select id="getDestNum" parameterType="string" resultType="string">
+		SELECT  CATU_CODE||LPAD((MAX(SUBSTR(CAT_CODE,-1))+1),3,0) AS catCode
+		FROM    CATEGORY
+		WHERE   CATU_CODE = #{nationCode}
+		GROUP BY CATU_CODE	
+	</select>
+	<insert id="insertDest" parameterType="map">
+		INSERT INTO CATEGORY(
+			CAT_CODE
+			,CATU_CODE
+			, CAT_NAM
+		) VALUES (
+			#{catCode}
+			, #{nationCode}
+			, #{destName}
+		)
+	</insert>
+	<insert id="insertArea" parameterType="map">
+		INSERT INTO AREA (
+		    AREA_CODE,
+		    AREA_NAME,
+		    NAT_CODE
+		) VALUES (
+		   #{catCode}
+		   ,#{destName}
+		   ,#{nationCode}
+		)
+	</insert>
+	
+	
+	
+</mapper>

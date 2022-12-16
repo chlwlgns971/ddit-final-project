@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--  [[개정이력(Modification Information)]]       -->
+<!--  수정일        수정자     수정내용               -->
+<!--  ==========   ======    ==============        -->
+<!--  2022. 10. 25.}     최지훈     최초작성               -->
+<!--  Copyright (c) 2022 by DDIT All right reserved -->
+<Configuration status="WARN">
+	<Appenders>
+		<Console name="Console" target="SYSTEM_OUT">
+			<PatternLayout
+				pattern="%-5level %logger{1.}[%L] - %msg%n" />
+		</Console>
+	</Appenders>
+	<Loggers>
+		<Logger name="org.springframework" level="info" additivity="false">
+			<AppenderRef ref="Console" />
+		</Logger>
+		<Logger name="org.springframework.web" level="info" additivity="false">
+			<AppenderRef ref="Console" />
+		</Logger>
+		<Logger name="kr.or.ddit" level="info" additivity="false">
+			<AppenderRef ref="Console" />
+		</Logger>
+		<Logger name="jdbc.sqltiming" level="debug" additivity="false">
+			<AppenderRef ref="Console" />
+		</Logger>
+		<Logger name="jdbc.resultsettable" level="debug" additivity="false">
+			<AppenderRef ref="Console" />
+		</Logger>
+		<Root level="error">
+			<AppenderRef ref="Console" />
+		</Root>
+	</Loggers>
+</Configuration>
+<!-- appender : 로그 기록 매체 layout : 로그 형식 message : 설정에 포함하지 않음 logger : 로그 
+	메세지 전달자 level : 로깅이벤트 등급. debug < info < warn < error < fetal -->
+<!-- 	서버 구동시 제대로 생성되는지, mapping이 제대로 되고 있는지 확인하기 위한 log파일 -->

@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.or.ddit.main.dao.MainDAO">
+	<insert id="insertNews" parameterType="String">
+		INSERT INTO NEWS NEWS_MAIL VALUES (#{mail,jdbcType=VARCHAR})
+	</insert>
+	
+	<select id="countMember" resultType="int">
+		SELECT COUNT(MEM_ID) FROM MEMBER
+	</select>
+	
+	<select id="countCompany" resultType="int">
+		SELECT COUNT(COM_ID) FROM COMPANY
+	</select>
+	
+	<select id="countCar" resultType="int">
+		SELECT COUNT(PROD_NUM) FROM CAR
+	</select>
+	
+	<select id="countRoom" resultType="int">
+		SELECT COUNT(ROM_NUM) FROM ROOM
+	</select>
+	
+	<select id="countPackage" resultType="int">
+		SELECT COUNT(PKG_NUM) FROM PACKAGE
+	</select>
+	
+	<select id="countDestination" resultType="int">
+		SELECT COUNT(AREA_CODE) FROM DESTINATION
+	</select>
+</mapper>

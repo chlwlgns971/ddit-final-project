@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.or.ddit.insurance.dao.InsuranceDAO">
+
+	<insert id="insertInsurance" parameterType="InsuranceVO">
+	<selectKey resultType="int" keyProperty="insNum"
+			order="BEFORE">
+			SELECT PRODNO_SEQ.nextval
+			FROM DUAL
+		</selectKey>
+		INSERT INTO INSURANCE
+		(
+		INS_NUM
+		, INS_QTY
+		, RES_COST
+		)VALUES(
+		  #{insNum,jdbcType=NUMERIC}
+		, #{insQty,jdbcType=NUMERIC}
+		, #{resCost,jdbcType=NUMERIC}
+		)
+	</insert>
+	
+	<select id="selectMaxInsurance" resultType="int">
+		SELECT MAX(INS_NUM)
+		FROM INSURANCE	
+	</select>
+	
+	
+
+</mapper>

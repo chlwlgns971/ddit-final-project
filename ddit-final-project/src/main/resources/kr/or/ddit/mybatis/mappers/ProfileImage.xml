@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper
+	namespace="kr.or.ddit.member.personal.dao.ProfileImageDAO">
+	<insert id="insertProfilImage" parameterType="ProfileImageVO">
+		INSERT INTO IMAGE
+		(
+		ACC_ID
+		,IMG_NAM
+		,IMG_ONAM
+		,IMG_EXNAM
+		,IMG_SIZE
+		,IMG_FSIZE
+		,IMG_LOCAT
+		)
+		VALUES
+		(
+		#{accId,jdbcType=VARCHAR}
+		, #{imgNam,jdbcType=VARCHAR}
+		, #{imgONam,jdbcType=VARCHAR}
+		, #{imgExnam,jdbcType=VARCHAR}
+		, #{imgSize,jdbcType=NUMERIC}
+		, #{imgFsize,jdbcType=VARCHAR}
+		, #{imgLocat,jdbcType=VARCHAR}
+		)
+	</insert>
+
+	<select id="retrieveImgInfo" parameterType="String"
+		resultType="ProfileImageVO">
+		SELECT
+		IMG_NAM
+		,IMG_ONAM
+		,IMG_LOCAT
+		,IMG_EXNAM
+		,IMG_SIZE
+		,IMG_FSIZE
+		FROM IMAGE
+		WHERE ACC_ID = #{accId,jdbcType=VARCHAR}
+	</select>
+	
+	<select id="countImg" parameterType="String"
+		resultType="int">
+		SELECT count(*)
+		FROM IMAGE
+		WHERE ACC_ID = #{accId,jdbcType=VARCHAR}
+	</select>
+
+
+	<select id="countImageInfo" parameterType="String" resultType="int">
+		SELECT COUNT(*)
+		FROM IMAGE
+		WHERE ACC_ID = #{accId,jdbcType=VARCHAR}
+	</select>
+
+	<delete id="deleteProfilImage" parameterType="String">
+		DELETE IMAGE 
+		WHERE ACC_ID = #{accId,jdbcType=VARCHAR}
+	
+	</delete>
+
+</mapper>

@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.or.ddit.admin.dao.AdminInfoDAO">
+	<select id="getUserInfo" parameterType="string" resultType="map">
+		SELECT  ACC_ID
+		        , ACC_PW
+		        , ACC_RDATE
+		        , ACC_STAT
+		        , MEM_CODE
+		        , TO_CHAR(ACC_INTRO) AS ACC_INTRO
+		        , ACC_IMG
+		        , ADMIN_NAM
+		FROM    ACCOUNT JOIN ADMIN ON ACC_ID = ADMIN_ID
+		WHERE   ACC_ID = #{userId}
+	</select>
+	
+	
+	<select id="getUserPW" parameterType="string" resultType="string">
+		SELECT  ACC_PW
+		FROM    ACCOUNT
+		WHERE   ACC_ID = #{userId}
+	</select>
+	
+	<update id="setNewPassword" parameterType="AccountVO">
+		UPDATE	ACCOUNT
+		SET		ACC_PW = #{accPw}
+		WHERE	ACC_ID = #{accId}
+	</update>
+
+	<update id="setNewIntro" parameterType="AccountVO">
+		UPDATE	ACCOUNT
+		SET		ACC_INTRO = #{accIntro}
+		WHERE	ACC_ID = #{accId}
+	</update>
+	
+	
+	<select id="getImageData" parameterType="string" resultType="int">
+		SELECT	COUNT(*)
+		FROM	IMAGE
+		WHERE	ACC_ID=#{userId}
+	</select>
+	<delete id="deleteImgdata" parameterType="string">
+		DELETE
+		FROM	IMAGE
+		WHERE	ACC_ID=#{userId}
+	</delete>
+	<insert id="insertImgData" parameterType="ProfileImageVO">
+		INSERT INTO IMAGE (
+		    IMG_NAM,
+		    IMG_ONAM,
+		    IMG_LOCAT,
+		    IMG_EXNAM,
+		    IMG_SIZE,
+		    IMG_FSIZE,
+		    ACC_ID
+		) VALUES (
+			#{imgNam}
+		    ,#{imgONam}
+		    , '/resources/file/profile'
+		    ,#{imgExnam}
+		    ,#{imgSize}
+		    ,#{imgFsize}
+		    ,#{accId}
+		)
+	</insert>
+	<update id="UpdateImgData" parameterType="AccountVO">
+	UPDATE  ACCOUNT
+	SET     ACC_IMG =#{accImg} 
+	WHERE	ACC_ID =#{accId}
+	</update>
+	
+</mapper>

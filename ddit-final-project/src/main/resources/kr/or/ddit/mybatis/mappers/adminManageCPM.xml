@@ -1,0 +1,143 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.or.ddit.admin.dao.AdminManageCPMDAO">
+	<select id="getCPCat" resultType="CategoryVO">
+		SELECT	CAT_CODE
+				,CAT_NAM
+		FROM	CATEGORY
+		WHERE	CATU_CODE = 'COUPON'
+	</select>
+	<select id="getCouponList" parameterType="PagingVO" resultType="CouponVO">
+		SELECT * 
+		FROM (
+		        SELECT ROWNUM RNUM,A.*
+		        FROM    (
+		                    SELECT COUPON.COU_NUM , COU_NAM , COUPON.cou_qty - NVL(mcou_qty,0) as cou_qty , COU_SDATE , COU_EDATE , COU_CODE , COU_DISC , ACC_ID
+		                    FROM    (   SELECT MYCOUPON.COU_NUM, COUPON.cou_qty, SUM(NVL(MCOU_QTY,0)) as mcou_qty 
+		                                FROM coupon RIGHT OUTER join MYCOUPON on COUPON.cou_num = MYCOUPON.cou_num
+		                                GROUP BY MYCOUPON.COU_NUM, cou_qty 
+		                            ) c RIGHT OUTER join coupon on COUPON.cou_num = C.cou_num ORDER BY COUPON.COU_NUM DESC 
+		                )A 
+		        ) B 
+		 
+		<![CDATA[
+		WHERE RNUM>=#{startRow} AND RNUM <=#{endRow}
+		]]>
+		
+		
+	</select>
+	
+	<select id="retrieveCouponCount" resultType="int">
+		SELECT  count(*)
+		FROM COUPON
+	</select>
+	
+	<select id="getCouponDetail" parameterType="int" resultType="CouponVO">
+		SELECT  COUPON.COU_NUM
+		        , COUPON.COU_QTY-NVL(A.MCOU_QTY,0) AS COU_QTY 
+		        , COU_NAM 
+		        , COU_SDATE 
+		        , COU_EDATE 
+		        , COU_CODE 
+		        , COU_DISC 
+		        , ACC_ID 
+		FROM    (
+		            SELECT  MYCOUPON.COU_NUM 
+		                    , COU_QTY 
+		                    , SUM(NVL(MCOU_QTY,0)) AS MCOU_QTY 
+		            FROM MYCOUPON INNER JOIN COUPON ON COUPON.COU_NUM = MYCOUPON.COU_NUM GROUP BY MYCOUPON.COU_NUM, COU_QTY 
+		        ) A RIGHT OUTER JOIN COUPON ON COUPON.COU_NUM = A.COU_NUM 
+		WHERE COUPON.COU_NUM =#{couNum}
+		
+<!-- 		SELECT  COU_NUM -->
+<!-- 		        ,A.COU_QTY-MCOU_QTY AS COU_QTY -->
+<!-- 		        ,  COU_NAM -->
+<!-- 		        ,COU_SDATE -->
+<!-- 		        ,COU_EDATE -->
+<!-- 		        ,COU_CODE -->
+<!-- 		        ,COU_DISC -->
+<!-- 		        ,ACC_ID -->
+<!-- 		FROM         -->
+<!-- 		    ( -->
+<!-- 		        SELECT  MCOU_NUM -->
+<!-- 		                ,COU_QTY -->
+<!-- 		                , SUM(MCOU_QTY) AS MCOU_QTY -->
+<!-- 		        FROM    MYCOUPON INNER JOIN COUPON ON COU_NUM = MCOU_NUM -->
+<!-- 		        GROUP BY MCOU_NUM, COU_QTY -->
+<!-- 		    ) A JOIN COUPON ON COU_NUM = MCOU_NUM -->
+<!-- 				WHERE COU_NUM = #{couNum} -->
+	</select>
+	<update id="setCoupon" parameterType="CouponVO">
+		UPDATE	COUPON
+		SET		COU_SDATE = #{couSdate}
+				, COU_EDATE = #{couEdate}
+				, COU_NAM = #{couNam}
+		WHERE	COU_NUM = #{couNum}
+	</update>
+	
+<!-- 	<delete id="deleteCoupon"> -->
+<!-- 		DELETE -->
+<!-- 		FROM	COUPON -->
+<!-- 		WHERE	COU_NUM = #{couNum} -->
+<!-- 	</delete> -->
+	
+	<insert id="insertCoupon" parameterType="CouponVO">
+		<selectKey order="BEFORE" resultType="integer" keyProperty="couNum">
+			SELECT SEQ_COUPON.nextval
+			FROM DUAL
+		</selectKey>
+		INSERT INTO COUPON 
+		(
+		    COU_NUM,
+		    COU_NAM,
+		    COU_QTY,
+		    COU_SDATE,
+		    COU_EDATE,
+		    COU_CODE,
+		    COU_DISC,
+		    ACC_ID
+		) VALUES 
+		(
+		 #{couNum}
+		 , #{couNam}
+		 , #{couQty}
+		 , #{couSdate}
+		 , #{couEdate}
+		 , #{couCode}
+		 , #{couDisc}
+		 , #{accId}
+		)
+	</insert>
+	
+	
+	
+	
+
+
+
+	<sql id="searchCouponFlag">
+		<trim prefix="AND (" suffix=")">
+			<if
+				test="@org.apache.commons.lang3.StringUtils@isNotBlank(simpleCondition.searchWord)">
+				<choose>
+					<when test="'name' eq simpleCondition.searchType">
+						INSTR(MEM_NAME, #{simpleCondition.searchWord}) > 0
+					</when>
+					<when test="'address' eq simpleCondition.searchType">
+						INSTR(MEM_ADD1, #{simpleCondition.searchWord}) > 0
+					</when>
+					<otherwise>
+						INSTR(MEM_NAME, #{simpleCondition.searchWord}) > 0
+						OR
+						INSTR(MEM_ADD1, #{simpleCondition.searchWord}) > 0
+					</otherwise>
+				</choose>
+			</if>
+		</trim>
+		
+				ORDER BY COU_NUM DESC
+	</sql>
+
+
+
+</mapper>

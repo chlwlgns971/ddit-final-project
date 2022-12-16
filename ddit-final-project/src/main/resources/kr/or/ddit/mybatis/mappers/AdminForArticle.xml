@@ -1,0 +1,125 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.or.ddit.admin.dao.AdminManageNoticeDAO">
+	<select id="retrieveNoticeCount" parameterType="PagingVO" resultType="int">
+		SELECT	COUNT(*)
+		FROM	ARTICLE JOIN CATEGORY ON ART_CCODE = CAT_CODE
+		<include refid="searchNoticeFlag"/>
+	</select>
+	
+	<select id="noticeList" parameterType="PagingVO" resultType="ArticleVO">
+		SELECT *
+		FROM(
+			SELECT ROWNUM RNUM,A.* 
+			FROM(
+				SELECT  ART_NUM
+				        , ART_TITLE
+				        , TO_DATE(ART_DATE,'YY.MM.DD.') AS ART_DATE
+				FROM    ARTICLE
+				<include refid="searchNoticeFlag"/>
+			)A
+		)B
+		<![CDATA[
+		WHERE RNUM>=#{startRow} AND RNUM <=#{endRow}
+		]]>
+	
+	</select>
+	<select id="getArticleDetail" parameterType="int" resultType="ArticleVO">
+		SELECT	ART_NUM
+				, ART_TITLE
+				, ART_CONT
+				, ART_DATE
+				, ACC_ID
+				, ART_BCODE
+				
+		FROM	ARTICLE
+		WHERE	ART_NUM = #{artNum}
+	</select>
+	<insert id="insertNotice" parameterType="ArticleVO">
+		<selectKey order="BEFORE" resultType="integer" keyProperty="artNum">
+			SELECT ART_SEQ.nextval
+			FROM DUAL
+		</selectKey>
+		INSERT INTO ARTICLE
+		(
+			ART_NUM
+			, ART_TITLE
+			, ACC_ID
+			, ART_CONT
+			, ART_DATE
+			, ART_CCODE
+			, ART_BCODE
+			, ART_HIT
+			, ART_REC
+		)VALUES
+		(
+			#{artNum}
+			, #{artTitle,jdbcType=VARCHAR}
+			, #{accId,jdbcType=VARCHAR}
+			, #{artCont,jdbcType=CLOB}
+			, SYSDATE
+			, #{artCCode,jdbcType=VARCHAR}
+			, #{artBCode,jdbcType=VARCHAR}
+			, 0
+			, 0
+		)
+	</insert>
+	<select id="getNotiCat" parameterType="string" resultType="CategoryVO">
+		SELECT	CAT_CODE
+				,CAT_NAM
+		FROM	CATEGORY
+		WHERE	CATU_CODE = #{catuCode}
+	</select>
+	<update id="updateNotice">
+		UPDATE	ARTICLE
+		SET		ART_TITLE=#{artTitle,jdbcType=VARCHAR}
+				, ART_CONT=#{artCont,jdbcType=CLOB}
+				, ART_DATE=SYSDATE
+				, ART_BCODE=#{artBCode,jdbcType=VARCHAR}
+				, ART_CCODE=#{artCCode,jdbcType=VARCHAR}
+				, ACC_ID=#{accId,jdbcType=VARCHAR}
+		WHERE	ART_NUM=#{artNum}
+	
+	</update>
+	<delete id="delNotice" parameterType="int">
+		DELETE	FROM	ARTICLE
+		WHERE ART_NUM=#{artNum}
+	</delete>
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	<sql id="searchNoticeFlag">
+		WHERE	ART_BCODE = #{detailMap.artBCode}
+		<trim prefix="AND (" suffix=")">
+			<if
+				test="@org.apache.commons.lang3.StringUtils@isNotBlank(simpleCondition.searchWord)">
+				<choose>
+					<when test="'name' eq simpleCondition.searchType">
+						INSTR(MEM_NAME, #{simpleCondition.searchWord}) > 0
+					</when>
+					<when test="'address' eq simpleCondition.searchType">
+						INSTR(MEM_ADD1, #{simpleCondition.searchWord}) > 0
+					</when>
+					<otherwise>
+						INSTR(MEM_NAME, #{simpleCondition.searchWord}) > 0
+						OR
+						INSTR(MEM_ADD1, #{simpleCondition.searchWord}) > 0
+					</otherwise>
+				</choose>
+			</if>
+		</trim>
+		
+				ORDER BY ART_NUM DESC
+	</sql>
+</mapper>

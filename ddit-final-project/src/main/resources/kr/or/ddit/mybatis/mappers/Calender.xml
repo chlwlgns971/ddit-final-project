@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.or.ddit.calender.dao.CalenderDAO">
+	<insert id="createCalender" parameterType="CalenderVO">
+		<selectKey resultType="int" keyProperty="calNum" order="BEFORE">
+			SELECT CALENDER_SEQ.nextval
+			FROM DUAL
+		</selectKey>
+		INSERT INTO CALENDER
+		(
+			CAL_NUM
+			,CAL_WDATE
+			,CAL_SDATE
+			,CAL_EDATE
+			,AREA_CODE
+		)
+		VALUES
+		(
+			#{calNum,jdbcType=NUMERIC}
+			,SYSDATE
+			,TO_DATE(#{calSdate,jdbcType=VARCHAR})
+			,TO_DATE(#{calEdate,jdbcType=VARCHAR})
+			,#{areaCode,jdbcType=VARCHAR}
+		)
+	</insert>
+	
+	<insert id="createTravelInfo" parameterType="Map">
+		INSERT INTO TRAVELER
+		(
+			CAL_NUM
+			,ACC_ID
+		)
+		VALUES
+		(
+			#{calNum,jdbcType=NUMERIC}
+			,#{accId,jdbcType=VARCHAR}
+		)
+	</insert>
+	
+	<select id="calenderList" parameterType="String" resultType="CalenderVO">
+		SELECT C.CAL_NUM, TO_CHAR(TO_DATE(C.CAL_WDATE),'DAY Mon DD, YYYY','NLS_DATE_LANGUAGE=ENGLISH') CAL_WDATE
+		, TO_CHAR(TO_DATE(C.CAL_SDATE),'Mon DD, YYYY','NLS_DATE_LANGUAGE=ENGLISH') CAL_SDATE, TO_CHAR(TO_DATE(C.CAL_EDATE),'Mon DD, YYYY','NLS_DATE_LANGUAGE=ENGLISH') CAL_EDATE
+		, C.AREA_CODE, A.AREA_NAME , CA.CAT_NAM CAT_NAME, CA.CATU_CODE
+		FROM CALENDER C INNER JOIN AREA A ON(C.AREA_CODE = A.AREA_CODE) INNER JOIN CATEGORY CA ON(A.NAT_CODE = CA.CAT_CODE)
+		WHERE CAL_NUM IN (SELECT CAL_NUM FROM TRAVELER WHERE ACC_ID = #{accId})
+		ORDER BY C.CAL_NUM DESC
+	</select>
+	
+	<select id="calenderInfo" parameterType="int" resultType="CalenderVO">
+		SELECT C.CAL_NUM, CAL_WDATE, CAL_SDATE, CAL_EDATE, C.AREA_CODE, A.AREA_NAME , CA.CAT_NAM CAT_NAME, CA.CATU_CODE, DEST_BANNER BANNER_IMG
+		FROM CALENDER C INNER JOIN AREA A ON(C.AREA_CODE = A.AREA_CODE) 
+						INNER JOIN CATEGORY CA ON(A.NAT_CODE = CA.CAT_CODE)
+						INNER JOIN DESTINATION D ON(C.AREA_CODE=D.AREA_CODE)
+		WHERE CAL_NUM = #{calNum}
+	</select>
+	
+	<select id="attractionList" parameterType="String" resultType="AttractionVO">
+		SELECT ATT_NUM, ATT_NAM, ATT_INFO, ATT_LATIT, ATT_LNGIT, ATT_ADDR, ATT_ARATE, ATT_WAY, ATT_USETIM, ATT_USETIP, AREA_CODE, ATT_IMG
+		FROM ATTRACTION
+		WHERE AREA_CODE = #{areaCode}
+	</select>
+	
+	<select id="travNoteList" parameterType="int" resultType="TravNoteVO">
+		SELECT TRA_NUM, TRA_STIM, TRA_ETIM, TRA_INFO, TRA_BUDG, CAL_NUM, TRA_DAY
+		FROM TRAVNOTE
+		WHERE CAL_NUM = #{calNum}
+	</select>
+	
+	<delete id="deleteCalender" parameterType="int">
+		DELETE FROM CALENDER
+		WHERE CAL_NUM = #{calNum}
+	</delete>
+	
+	<delete id="deleteTravelInfo" parameterType="Map">
+		DELETE FROM TRAVELER
+		WHERE CAL_NUM = #{calNum} AND ACC_ID = #{accId}
+	</delete>
+</mapper>

@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="kr.or.ddit.member.company.dao.CompanyDAO">
+<sql id="searchMemFrag">
+		WHERE COM_ID=#{detailMap.comId}
+		<trim prefix="AND (" suffix=")">
+			<if test="@org.apache.commons.lang3.StringUtils@isNotBlank(simpleCondition.searchWord)">
+				<choose>
+					<when test="'name' eq simpleCondition.searchType">
+						WHERE=INSTR(PROD_NAM, #{simpleCondition.searchWord}) > 0
+					</when>
+					<when test="'address' eq simpleCondition.searchType">
+						WHERE=INSTR(AREA_CODE, #{simpleCondition.searchWord}) > 0
+					</when>
+					<otherwise>
+						WHERE=INSTR(PROD_NAM, #{simpleCondition.searchWord}) > 0
+						OR
+						WHERE=INSTR(AREA_CODE, #{simpleCondition.searchWord}) > 0
+					</otherwise>
+				</choose>
+			</if>
+		</trim>
+	</sql>
+
+<!-- 	<select id="retrieveCompanyProduct" parameterType="String" resultType="CompanyProductVO"> -->
+<!-- 		SELECT -->
+<!-- 		P.PROD_NAM -->
+<!-- 		,P.PROD_QTY -->
+<!-- 		,A.AREA_CODE -->
+<!-- 		,P.PROD_IMG -->
+<!-- 		FROM PROD P LEFT OUTER JOIN AREA A -->
+<!-- 		ON P.AREA_CODE=A.AREA_CODE -->
+<!-- 		WHERE P.COM_ID=#{comId,jdbcType=VARCHAR} -->
+<!-- 	</select> -->
+	
+	<select id="companyProductList" parameterType="PagingVO" resultType="CompanyProductVO">
+	SELECT *
+		FROM(
+			SELECT A.*, ROWNUM RNUM
+			FROM(
+				SELECT	P.PROD_NAM
+				,P.PROD_QTY
+				,A.AREA_NAME
+				,P.PROD_NUM
+				,P.PROD_IMG
+				FROM PROD P JOIN AREA A
+					ON P.AREA_CODE=A.AREA_CODE
+				<include refid="searchMemFrag"/>
+				ORDER BY A.ROWID DESC
+			)A
+		)B
+		<![CDATA[
+		WHERE RNUM>=#{startRow} AND RNUM <=#{endRow}
+		]]>
+	</select>
+	
+	<select id="searchAreaName" parameterType="AreaVO" resultType="AreaVO">
+	SELECT AREA_NAME
+	FROM AREA
+	WHERE AREA_CODE=#{areaCode,jdbcType=VARCHAR}
+	</select>
+	
+	
+	<select id="retrieveCPCount" resultType="int" parameterType="PagingVO">
+		SELECT	COUNT(*)
+		FROM	PROD
+		<include refid="searchMemFrag"/>
+	</select>
+	
+	<select id="companyDetailProduct" parameterType="String" resultType="CompanyProductVO">
+		SELECT 
+	</select>
+</mapper>

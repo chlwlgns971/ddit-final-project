@@ -1,0 +1,241 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.or.ddit.booking.dao.BookingDAO">
+	<select id="getCouponList" parameterType="map" resultType="MyCouponVO">
+		SELECT MC.COU_NUM COU_NUM,
+		MC.MEM_ID MEM_ID,
+		MC.MCOU_QTY MCOU_QTY,
+		C.COU_NAM COU_NAM,
+		C.COU_QTY COU_QTY,
+		C.COU_SDATE COU_SDATE,
+		C.COU_EDATE COU_EDATE,
+		C.COU_CODE COU_CODE,
+		C.COU_DISC COU_DISC,
+		C.ACC_ID ACC_ID FROM MYCOUPON MC INNER JOIN COUPON C ON(MC.COU_NUM = C.COU_NUM) 
+		<![CDATA[
+		WHERE MC.MEM_ID= #{memId}
+		AND (SYSDATE > COU_SDATE AND SYSDATE < COU_EDATE) 
+		AND NOT MC.MCOU_QTY = 0
+		AND (C.COU_MIN<=#{prodPrice})
+		AND (C.COU_CATE='ALL' OR C.COU_CATE = (SUBSTR(#{prodCode},0,2)))
+		]]>
+	</select>
+	
+	<select id="getCoupon" parameterType="map" resultType="MyCouponVO">
+		SELECT MC.COU_NUM COU_NUM,
+		MC.MEM_ID MEM_ID,
+		MC.MCOU_QTY MCOU_QTY,
+		C.COU_NAM COU_NAM,
+		C.COU_QTY COU_QTY,
+		C.COU_SDATE COU_SDATE,
+		C.COU_EDATE COU_EDATE,
+		C.COU_CODE COU_CODE,
+		C.COU_DISC COU_DISC,
+		C.ACC_ID ACC_ID,
+		C.COU_CATE COU_CATE,
+		C.COU_MIN COU_MIN
+		FROM MYCOUPON MC INNER JOIN COUPON C ON(MC.COU_NUM = C.COU_NUM) 
+		<![CDATA[
+		WHERE MC.MEM_ID= #{memId}
+		AND (SYSDATE > COU_SDATE AND SYSDATE < COU_EDATE) 
+		AND NOT MC.MCOU_QTY = 0
+		AND (C.COU_MIN<=#{prodPrice})
+		AND (C.COU_CATE='ALL' OR C.COU_CATE = (SUBSTR(#{prodCode},0,2)))
+		AND MC.COU_NUM = #{coupon}
+		]]>
+	</select>
+	
+	<select id="getMemInfo" parameterType="String" resultType="MemberVO">
+		SELECT MEM_ID, MEM_MAIL, MEM_ADDR, MEM_DADDR, MEM_MIL, MEM_EFN, MEM_ELN 
+		FROM MEMBER WHERE MEM_ID = #{memId}
+	</select>
+	
+	<select id="getProdInfo" parameterType="int" resultType="ProdVO">
+		SELECT PROD_NUM, PROD_NAM, PROD_QTY, PROD_CODE, CINFO_NUM,
+		AREA_CODE, COM_ID, PROD_IMG 
+		FROM PROD
+		WHERE PROD_NUM = #{prodNum}
+	</select>
+	
+	<select id="getCompanyInfo" parameterType="int" resultType="CompanyInfoVO">
+		SELECT CI.CINFO_NUM CINFO_NUM,
+		CI.CINFO_TITLE CINFO_TITLE,
+		CI.CINFO_INFO CINFO_INFO,
+		CI.CINFO_ARATE CINFO_ARATE,
+		CI.COM_ID COM_ID,
+		C.COM_HPHON COM_HPHON,
+		C.COM_NAM COM_NAM,
+		C.COM_ADDR COM_ADDR,
+		C.COM_LATIT COM_LATIT,
+		C.COM_LNGIT COM_LNGIT,
+		C.COM_MAIL COM_MAIL
+		FROM COMINFO CI INNER JOIN COMPANY C ON(CI.COM_ID = C.COM_ID)
+		WHERE CI.CINFO_NUM = #{cinfoNum}
+	</select>
+	
+	<select id="getChargeInfo" parameterType="String" resultType="ChargeVO">
+		SELECT CHAR_CODE,CHAR_PRICE,CHAR_DATE
+		FROM CHARGE
+		WHERE CHAR_CODE = #{charCode}
+	</select>
+	
+	<select id="getReservationList" parameterType="String" resultType="ReservationVO">
+		SELECT R.RES_CODE, TO_CHAR(R.RES_DATE,'YYYY-MM-DD') RES_DATE, TO_CHAR(R.RES_SDATE,'YYYY-MM-DD') RES_SDATE, TO_CHAR(R.RES_EDATE,'YYYY-MM-DD') RES_EDATE 
+		,R.RES_STT, R.RES_QTY, R.PROD_NUM, R.MEM_ID, R.CHAR_CODE, C.CHAR_PRICE, TO_CHAR(C.CHAR_DATE,'YYYY-MM-DD') CHAR_DATE, P.PROD_IMG, P.PROD_NAM, R.PROD_PRICE
+		FROM RESERVATION R INNER JOIN CHARGE C ON(R.CHAR_CODE = C.CHAR_CODE)
+                   		   INNER JOIN PROD P ON(P.PROD_NUM = R.PROD_NUM)
+		WHERE MEM_ID = #{accId}
+	</select>
+	
+	<select id="getReservationInfo" parameterType="String" resultType="ReservationVO">
+		SELECT R.RES_CODE, TO_CHAR(R.RES_DATE,'YYYY-MM-DD') RES_DATE, TO_CHAR(R.RES_SDATE,'YYYY-MM-DD') RES_SDATE, TO_CHAR(R.RES_EDATE,'YYYY-MM-DD') RES_EDATE 
+		,R.RES_STT, R.RES_QTY, R.PROD_NUM, R.MEM_ID, R.CHAR_CODE, C.CHAR_PRICE, TO_CHAR(C.CHAR_DATE,'YYYY-MM-DD') CHAR_DATE, P.PROD_IMG, P.PROD_NAM, R.PROD_PRICE
+		FROM RESERVATION R INNER JOIN CHARGE C ON(R.CHAR_CODE = C.CHAR_CODE)
+                   		   INNER JOIN PROD P ON(P.PROD_NUM = R.PROD_NUM)
+		WHERE RES_CODE = #{resCode}
+	</select>
+	
+	<select id="getResComList" parameterType="String" resultType="ReservationVO">
+		SELECT R.RES_CODE RES_CODE,
+			TO_CHAR(R.RES_DATE,'YYYY-MM-DD') RES_DATE,
+			TO_CHAR(R.RES_SDATE,'YYYY-MM-DD') RES_SDATE,
+			TO_CHAR(R.RES_EDATE,'YYYY-MM-DD') RES_EDATE,
+			R.RES_STT RES_STT,
+			R.RES_QTY RES_QTY,
+			R.PROD_NUM PROD_NUM,
+			R.MEM_ID MEM_ID,
+			R.CHAR_CODE CHAR_CODE,
+			R.PROD_PRICE PROD_PRICE,
+			P.PROD_NAM PROD_NAM,
+			P.PROD_IMG PROD_IMG
+		FROM RESERVATION R INNER JOIN PROD P ON(P.PROD_NUM = R.PROD_NUM)
+		WHERE P.COM_ID = #{comId}
+	</select>
+	
+	<select id="getResMemberInfo" parameterType="String" resultType="ResDatailVO">
+		SELECT RES_CODE ,
+			RDE_FNAM ,
+			RDE_LNAM ,
+			RDE_MAIL ,
+			RDE_NAT ,
+			RDE_ADD1 ,
+			RDE_ADD2  
+		FROM RESDETAIL 
+		WHERE RES_CODE = #{resCode}
+	</select>
+	
+	<insert id="insertChargeInfo" parameterType="ChargeVO">
+		INSERT INTO CHARGE
+		(
+			CHAR_CODE
+			,CHAR_PRICE
+			,CHAR_DATE
+		)
+		VALUES
+		(
+			#{charCode,jdbcType=VARCHAR}
+			,#{charPrice,jdbcType=NUMERIC}
+			,SYSDATE
+		)
+	</insert>
+	
+	<insert id="insertResInfo" parameterType="ReservationVO">
+		INSERT INTO RESERVATION
+		(
+			RES_CODE
+			,RES_DATE
+			,RES_SDATE
+			,RES_EDATE
+			,RES_STT
+			,RES_QTY
+			,PROD_NUM
+			,MEM_ID
+			,CHAR_CODE
+			,PROD_PRICE
+		)
+		VALUES
+		(
+			#{resCode,jdbcType=VARCHAR}
+			,SYSDATE
+			,#{resSdate,jdbcType=DATE}
+			,#{resEdate,jdbcType=DATE}
+			,#{resStt,jdbcType=VARCHAR}
+			,#{resQty,jdbcType=NUMERIC}
+			,#{prodNum,jdbcType=NUMERIC}
+			,#{memId,jdbcType=VARCHAR}
+			,#{charCode,jdbcType=VARCHAR}
+			,#{prodPrice,jdbcType=NUMERIC}
+		)
+	</insert>
+	
+	<insert id="insertResDetailInfo" parameterType="ResDatailVO">
+		INSERT INTO RESDETAIL
+		(
+			RES_CODE
+			,RDE_FNAM
+			,RDE_LNAM
+			,RDE_MAIL
+			,RDE_NAT
+			,RDE_ADD1
+			,RDE_ADD2
+		)
+		VALUES
+		(
+			#{resCode,jdbcType=VARCHAR}
+			,#{rdeFnam,jdbcType=VARCHAR}
+			,#{rdeLnam,jdbcType=VARCHAR}
+			,#{rdeMail,jdbcType=VARCHAR}
+			,#{rdeNat,jdbcType=VARCHAR}
+			,#{rdeAdd1,jdbcType=VARCHAR}
+			,#{rdeAdd2,jdbcType=VARCHAR}
+		)
+	</insert>
+	
+	<insert id="insertUseCoupon" parameterType="UseCouponVO">
+		INSERT INTO USECOUPON
+		(
+			CHAR_CODE
+			,MCOU_NUM
+			,MEM_ID
+			,UCOU_DATE
+		)
+		VALUES
+		(
+			#{charCode,jdbcType=VARCHAR}
+			,#{mcouNum,jdbcType=NUMERIC}
+			,#{memId,jdbcType=VARCHAR}
+			,TO_DATE(SUBSTR(#{ucouDate,jdbcType=DATE},0,19), 'YYYY-MM-DD HH24:MI:SS')
+		)
+	</insert>
+	
+	<insert id="insertUseMileage" parameterType="UseMileageVO">
+		INSERT INTO USEMILEAGE
+		(
+			CHAR_CODE
+			,UMIL_MILAGE
+			,MEM_ID
+			,UMIL_DATE
+		)
+		VALUES
+		(
+			#{charCode,jdbcType=VARCHAR}
+			,#{umilMilage,jdbcType=NUMERIC}
+			,#{memId,jdbcType=VARCHAR}
+			,TO_DATE(SUBSTR(#{umilDate,jdbcType=DATE},0,19), 'YYYY-MM-DD HH24:MI:SS')
+		)
+	</insert>
+	
+	<update id="updateCoupon" parameterType="Map">
+		UPDATE MYCOUPON
+		SET
+		MCOU_QTY = MCOU_QTY-1
+		WHERE COU_NUM = #{couNum} AND MEM_ID=#{memId}
+	</update>
+	
+	<update id="updateMileage" parameterType="Map">
+		UPDATE MEMBER
+		SET
+		MEM_MIL = MEM_MIL-#{mileage}
+		WHERE MEM_ID=#{memId}
+	</update>
+</mapper>

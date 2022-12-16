@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="kr.or.ddit.member.personal.dao.PersonalMemberDAO">
+	<select id="SelectPersonalMemberView" resultType="PersonalMemberVO" parameterType="string">
+		SELECT	MEM_ID
+				, MEM_KLN
+				, MEM_KFN
+				, MEM_ELN
+				, MEM_EFN
+				, MEM_NICK
+				, TO_CHAR(MEM_BIRTH, 'YYYY-MM-DD') AS MEM_BIRTH
+				, MEM_NAT
+				, MEM_GEND
+				, MEM_HPHON
+				, MEM_PHON
+				, MEM_MAIL
+				, MEM_ADDR
+				, MEM_DADDR
+				, MEM_MIL
+				, MEM_CONS
+				, A.ACC_INTRO
+				, TO_CHAR(MEM_LOGIN, 'YYYY-MM-DD') AS MEM_LOGIN
+				, MEM_GRADE
+				, MEM_EVAL
+		FROM 	MEMBER M LEFT OUTER JOIN ACCOUNT A ON A.ACC_ID=M.MEM_ID
+		WHERE 	MEM_ID=#{memId,jdbcType=VARCHAR}
+	</select>
+	<update id="updatePersonalMember" parameterType="PersonalMemberVO">
+		UPDATE MEMBER
+		SET 
+		MEM_NICK=#{memNick,jdbcType=VARCHAR}
+		,MEM_BIRTH=TO_DATE(SUBSTR(#{memBirth,jdbcType=DATE},0,10), 'YYYY-MM-DD')
+		,MEM_ELN=#{memEln,jdbcType=VARCHAR}
+		,MEM_EFN=#{memEfn,jdbcType=VARCHAR}
+		,MEM_HPHON=#{memHphon,jdbcType=VARCHAR}
+		,MEM_PHON=#{memPhon,jdbcType=VARCHAR}
+		,MEM_MAIL=#{memMail,jdbcType=VARCHAR}
+		,MEM_ADDR=#{memAddr,jdbcType=VARCHAR}
+		,MEM_DADDR=#{memDaddr,jdbcType=VARCHAR}
+		,MEM_CONS=#{memCons,jdbcType=VARCHAR}
+		WHERE MEM_ID=#{memId,jdbcType=VARCHAR}
+	</update>
+	
+	<select id="searchImgOname" parameterType="String" resultType="String">
+		SELECT IMG_ONAM
+		FROM IMAGE
+		WHERE IMG_NAM=#{imgNam,jdbcType=VARCHAR}
+	</select>
+	
+	
+</mapper>
+

@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="kr.or.ddit.member.personal.dao.PayHistoryDAO">
+ <select id="searchPayHistory" resultType="ChargeVO" parameterType="String">
+ 	SELECT 
+ 	A.CHAR_CODE ,A.CHAR_PRICE 
+ 	,TO_CHAR(A.CHAR_DATE, 'YYYY-MM-DD') AS CHAR_DATE
+ 	,TO_CHAR(B.RES_DATE, 'YYYY-MM-DD') AS RES_DATE
+ 	,B.RES_QTY,B.RES_STT
+ 	FROM CHARGE A JOIN RESERVATION B
+ 	ON A.CHAR_CODE=B.CHAR_CODE
+ 	WHERE A.CHAR_CODE=#{charCode}
+ </select>
+
+</mapper>

@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--  [[개정이력(Modification Information)]]       -->
+<!--  수정일        수정자     수정내용               -->
+<!--  ==========   ======    ==============        -->
+<!--  2022. 10. 25.}     최지훈     최초작성               -->
+<!--  Copyright (c) 2022 by DDIT All right reserved -->
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:c="http://www.springframework.org/schema/c"
+	xmlns:p="http://www.springframework.org/schema/p"
+	xmlns:util="http://www.springframework.org/schema/util"
+	xmlns:context="http://www.springframework.org/schema/context"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+		http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-4.3.xsd
+		http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util-4.3.xsd">
+		
+	<!-- 	스키마 종류 : beans, c, p, context -->
+	<!-- 	Model layer 관리용 상위 컨테이너 설정 파일 -->
+	<context:component-scan base-package="kr.or.ddit" use-default-filters="false">
+		<context:include-filter type="annotation" 
+			expression="org.springframework.stereotype.Component"/>
+		<context:exclude-filter type="annotation" 
+			expression="org.springframework.stereotype.Controller"/>	
+		<context:exclude-filter type="annotation" 
+			expression="org.springframework.web.bind.annotation.ControllerAdvice"/>	
+	</context:component-scan>
+	
+	<!-- 	어플리케이션의 설정값을 외부로 분리시킨 appInfo.properties로딩 -->
+	<util:properties id="appInfo" location="classpath:kr/or/ddit/appInfo.properties"/>
+	
+	<bean id="filterMultipartResolver" class="org.springframework.web.multipart.commons.CommonsMultipartResolver" 
+		p:maxUploadSizePerFile="#{appInfo['max-file-size']}"
+		p:maxUploadSize="#{appInfo['max-request-size']}"
+	/>
+	
+	<!-- gukbbap -->
+	<!-- google mail설정 -->
+	<bean id="mailSender" class="org.springframework.mail.javamail.JavaMailSenderImpl">
+		<property name="host" value="smtp.gmail.com" />
+		<property name="port" value="587" />
+		<property name="username" value="rest4trip@gmail.com" />
+		<property name="password" value="vgdbeumchywitjju" />
+		<property name="javaMailProperties">
+		<props>
+			<prop key="mail.transport.protocol">smtp</prop>
+			<prop key="mail.smtp.auth">true</prop>
+			<prop key="mail.smtp.starttls.enable">true</prop>
+			<prop key="mail.debug">true</prop>
+		</props>
+		</property>
+	</bean>
+</beans>

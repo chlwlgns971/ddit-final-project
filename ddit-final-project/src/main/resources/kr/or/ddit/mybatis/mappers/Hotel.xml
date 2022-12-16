@@ -1,0 +1,532 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.or.ddit.prod.hotel.dao.HotelDAO">
+
+	<!-- 김유리 -->
+	<!-- 검색 조건 detailMap에 담아 searchFrag로 사용 -->
+	<sql id="searchFrag">
+		<!-- <trim prefix=" AND " prefixOverrides="AND"> -->
+		<if test="detailMap neq null">                          <!-- detailMap.키 -->
+			<if
+				test="@org.apache.commons.lang3.StringUtils@isNotBlank(detailMap.romBed)">
+				AND ROM_BED = #{detailMap.romBed}
+			</if>
+			<if
+				test="@org.apache.commons.lang3.StringUtils@isNotBlank(detailMap.romPet)">
+				AND ROM_PET = #{detailMap.romPet}
+			</if>
+			<if
+				test="@org.apache.commons.lang3.StringUtils@isNotBlank(detailMap.romSho)">
+				AND ROM_SHO = #{detailMap.romSho}
+			</if>
+			<if
+				test="@org.apache.commons.lang3.StringUtils@isNotBlank(detailMap.romInt)">
+				AND ROM_INT = #{detailMap.romInt}
+			</if>
+			<if
+				test="@org.apache.commons.lang3.StringUtils@isNotBlank(detailMap.romBal)">
+				AND ROM_BAL = #{detailMap.romBal}
+			</if>
+			<if
+				test="@org.apache.commons.lang3.StringUtils@isNotBlank(detailMap.romTv)">
+				AND ROM_TV = #{detailMap.romTv}
+			</if>
+			<if
+				test="@org.apache.commons.lang3.StringUtils@isNotBlank(detailMap.romAirc)">
+				AND ROM_AIRC = #{detailMap.romAirc}
+			</if>
+			<if
+				test="@org.apache.commons.lang3.StringUtils@isNotBlank(detailMap.romGrade)">
+				AND ROM_GRADE = #{detailMap.romGrade}
+			</if>
+		</if>
+
+	</sql>
+
+	<!-- 검색된 결과 카운트 쿼리 -->
+	<select id="selectTotalRecord" resultType="int"
+		parameterType="PagingVO">
+		WITH RESERVATIONVIEW AS
+		(
+		SELECT CINFO_NUM, P.PROD_NUM, RES_SDATE,
+		RES_EDATE, RES_CODE
+		FROM PROD P LEFT OUTER JOIN RESERVATION R ON
+		P.PROD_NUM = R.PROD_NUM
+		WHERE RES_SDATE BETWEEN
+		TO_DATE(#{detailMap.resSdate,jdbcType=DATE},
+		'YY/MM/DD') AND
+		TO_DATE(#{detailMap.resEdate,jdbcType=DATE},
+		'YY/MM/DD')
+		OR RES_EDATE
+		BETWEEN TO_DATE(#{detailMap.resSdate,jdbcType=DATE},
+		'YY/MM/DD') AND
+		TO_DATE(#{detailMap.resEdate,jdbcType=DATE},
+		'YY/MM/DD')
+		),COMINFOVIEW
+		AS(
+		SELECT C.CINFO_NUM, CINFO_TITLE
+		, PROD_NUM, PROD_NAM
+		, PROD_QTY,
+		CIMG_NAME
+		, ROM_PRICE
+		, CR.REV_RATE
+		, CR.REV_NUM
+		, AREA_CODE
+		, ROM_GRADE
+		,
+		ROM_BED
+		, ROM_PET
+		, ROM_SHO
+		, ROM_INT
+		, ROM_BAL
+		, ROM_TV
+		, ROM_AIRC
+		,
+		MEM_CODE
+		,(
+		SELECT COUNT(RES_CODE)
+		FROM RESERVATIONVIEW R
+		WHERE
+		C.CINFO_NUM = R.CINFO_NUM AND P.PROD_NUM = R.PROD_NUM
+		) AS RES_CNT
+		FROM
+		COMINFO C JOIN PROD P ON C.CINFO_NUM = P.CINFO_NUM
+		LEFT OUTER JOIN ROOM
+		RM ON P.PROD_NUM = RM. ROM_NUM
+		LEFT OUTER JOIN COMREV CR ON C.CINFO_NUM
+		= CR.CINFO_NUM
+		LEFT OUTER JOIN COMIMG CI ON C.CINFO_NUM = CI.CINFO_NUM
+		LEFT OUTER JOIN COMPANY CP ON C.COM_ID = CP.COM_ID
+		LEFT OUTER JOIN
+		ACCOUNT A ON CP.COM_ID = A.ACC_ID
+		)
+		SELECT COUNT(DISTINCT CINFO_NUM)
+		FROM COMINFOVIEW
+		WHERE AREA_CODE =
+		#{detailMap.cityName,jdbcType=VARCHAR}
+		<include refid="searchFrag" />
+		AND <![CDATA[PROD_QTY - RES_CNT >= #{detailMap.room,jdbcType=NUMERIC} ]]>
+		AND MEM_CODE = 'ROLE_HC'
+
+	</select>
+
+	<!-- 호텔 검색 쿼리 -->
+	<select id="selectHotelList" parameterType="PagingVO"
+		resultType="HotelRoomVO">
+		WITH RESERVATIONVIEW AS
+		(
+		SELECT CINFO_NUM, P.PROD_NUM, RES_SDATE,
+		RES_EDATE, RES_CODE
+		FROM PROD P LEFT OUTER JOIN RESERVATION R ON
+		P.PROD_NUM = R.PROD_NUM
+		WHERE RES_SDATE BETWEEN
+		TO_DATE(#{detailMap.resSdate,jdbcType=DATE},
+		'YY/MM/DD') AND
+		TO_DATE(#{detailMap.resEdate,jdbcType=DATE},
+		'YY/MM/DD')
+		OR RES_EDATE
+		BETWEEN TO_DATE(#{detailMap.resSdate,jdbcType=DATE},
+		'YY/MM/DD') AND
+		TO_DATE(#{detailMap.resEdate,jdbcType=DATE},
+		'YY/MM/DD')
+		),COMINFOVIEW
+		AS(
+		SELECT C.CINFO_NUM, CINFO_TITLE
+		, PROD_NUM, PROD_NAM
+		, PROD_QTY,
+		CIMG_NAME
+		, ROM_PRICE
+		, CR.REV_RATE
+		, CR.REV_NUM
+		, AREA_CODE
+		, ROM_GRADE
+		,
+		ROM_BED
+		, ROM_PET
+		, ROM_SHO
+		, ROM_INT
+		, ROM_BAL
+		, ROM_TV
+		, ROM_AIRC
+		,
+		MEM_CODE
+		,(
+		SELECT COUNT(RES_CODE)
+		FROM RESERVATIONVIEW R
+		WHERE
+		C.CINFO_NUM = R.CINFO_NUM AND P.PROD_NUM = R.PROD_NUM
+		) AS RES_CNT
+		FROM
+		COMINFO C JOIN PROD P ON C.CINFO_NUM = P.CINFO_NUM
+		LEFT OUTER JOIN ROOM
+		RM ON P.PROD_NUM = RM. ROM_NUM
+		LEFT OUTER JOIN COMREV CR ON C.CINFO_NUM
+		= CR.CINFO_NUM
+		LEFT OUTER JOIN COMIMG CI ON C.CINFO_NUM = CI.CINFO_NUM
+		LEFT OUTER JOIN COMPANY CP ON C.COM_ID = CP.COM_ID
+		LEFT OUTER JOIN
+		ACCOUNT A ON CP.COM_ID = A.ACC_ID
+		), SORTEDBOARD AS(
+		SELECT DISTINCT
+		CINFO_NUM
+		, CINFO_TITLE
+		, ROM_GRADE
+		, AVG(REV_RATE) AS REV_RATE
+		,
+		COUNT(REV_NUM) AS REV_NUM
+		, CIMG_NAME
+		, MIN(ROM_PRICE) AS ROM_PRICE
+		FROM
+		COMINFOVIEW
+		WHERE AREA_CODE =
+		#{detailMap.cityName,jdbcType=VARCHAR}
+		AND <![CDATA[PROD_QTY - RES_CNT >= #{detailMap.room,jdbcType=NUMERIC} ]]>
+		AND MEM_CODE = 'ROLE_HC'
+		<include refid="searchFrag" />
+
+		GROUP BY CINFO_NUM
+		, CINFO_TITLE
+		, ROM_GRADE
+		, CIMG_NAME
+		ORDER BY
+		CINFO_NUM DESC
+		) , RNUMBOARD AS (
+		SELECT ROWNUM RNUM, SORTEDBOARD.*
+		FROM
+		SORTEDBOARD
+		)
+		SELECT *
+		FROM RNUMBOARD
+		WHERE <![CDATA[ RNUM >= #{startRow} AND RNUM <= #{endRow} ]]>
+
+	</select>
+
+	<!-- 기본리스트카운트 -->
+	<select id="defaultTotalRecord" resultType="int"
+		parameterType="PagingVO">
+		WITH RESERVATIONVIEW AS
+		(
+		SELECT CINFO_NUM, P.PROD_NUM, RES_SDATE,
+		RES_EDATE, RES_CODE
+		FROM PROD P LEFT OUTER JOIN RESERVATION R ON
+		P.PROD_NUM = R.PROD_NUM
+		WHERE RES_SDATE BETWEEN TO_DATE('22/12/17',
+		'YY/MM/DD') AND
+		TO_DATE('22/12/30', 'YY/MM/DD')
+		OR RES_EDATE BETWEEN
+		TO_DATE('22/12/17', 'YY/MM/DD') AND
+		TO_DATE('22/12/30', 'YY/MM/DD')
+		),COMINFOVIEW AS(
+		SELECT C.CINFO_NUM,
+		CINFO_TITLE
+		, PROD_NUM, PROD_NAM
+		,
+		PROD_QTY, CIMG_NAME
+		, ROM_PRICE
+		, CR.REV_RATE
+		, CR.REV_NUM
+		, AREA_CODE
+		,
+		ROM_GRADE
+		, ROM_BED
+		, ROM_PET
+		, ROM_SHO
+		, ROM_INT
+		, ROM_BAL
+		, ROM_TV
+		,
+		ROM_AIRC
+		, MEM_CODE
+		,(
+		SELECT COUNT(RES_CODE)
+		FROM RESERVATIONVIEW R
+		WHERE
+		C.CINFO_NUM = R.CINFO_NUM AND P.PROD_NUM = R.PROD_NUM
+		) AS RES_CNT
+		FROM
+		COMINFO C JOIN PROD P ON C.CINFO_NUM = P.CINFO_NUM
+		LEFT OUTER JOIN ROOM
+		RM ON P.PROD_NUM = RM. ROM_NUM
+		LEFT OUTER JOIN COMREV CR ON C.CINFO_NUM
+		= CR.CINFO_NUM
+		LEFT OUTER JOIN COMIMG CI ON C.CINFO_NUM = CI.CINFO_NUM
+		LEFT OUTER JOIN COMPANY CP ON C.COM_ID = CP.COM_ID
+		LEFT OUTER JOIN
+		ACCOUNT A ON CP.COM_ID = A.ACC_ID
+		)
+		SELECT COUNT(DISTINCT CINFO_NUM)
+		FROM COMINFOVIEW
+		WHERE AREA_CODE = 'KR001'
+		<include refid="searchFrag" />
+		AND <![CDATA[PROD_QTY - RES_CNT >= 1 ]]>
+		AND MEM_CODE = 'ROLE_HC'
+
+	</select>
+
+
+	<!-- 기본출력 호텔리스트 -->
+	<select id="defaultList" parameterType="PagingVO"
+		resultType="HotelRoomVO">
+
+		WITH RESERVATIONVIEW AS
+		(
+		SELECT CINFO_NUM, P.PROD_NUM, RES_SDATE,
+		RES_EDATE, RES_CODE
+		FROM PROD P LEFT OUTER JOIN RESERVATION R ON
+		P.PROD_NUM = R.PROD_NUM
+		WHERE RES_SDATE BETWEEN TO_DATE('22/12/17',
+		'YY/MM/DD') AND
+		TO_DATE('22/12/30', 'YY/MM/DD')
+		OR RES_EDATE BETWEEN
+		TO_DATE('22/12/17', 'YY/MM/DD') AND
+		TO_DATE('22/12/30', 'YY/MM/DD')
+		),COMINFOVIEW AS(
+		SELECT C.CINFO_NUM, CINFO_TITLE
+		, PROD_NUM, PROD_NAM
+		,
+		PROD_QTY, CIMG_NAME
+		, ROM_PRICE
+		, CR.REV_RATE
+		, CR.REV_NUM
+		, AREA_CODE
+		,
+		ROM_GRADE
+		, ROM_BED
+		, ROM_PET
+		, ROM_SHO
+		, ROM_INT
+		, ROM_BAL
+		, ROM_TV
+		,
+		ROM_AIRC
+		, MEM_CODE
+		,(
+		SELECT COUNT(RES_CODE)
+		FROM RESERVATIONVIEW R
+		WHERE
+		C.CINFO_NUM = R.CINFO_NUM AND P.PROD_NUM = R.PROD_NUM
+		) AS RES_CNT
+		FROM
+		COMINFO C JOIN PROD P ON C.CINFO_NUM = P.CINFO_NUM
+		LEFT OUTER JOIN ROOM
+		RM ON P.PROD_NUM = RM. ROM_NUM
+		LEFT OUTER JOIN COMREV CR ON C.CINFO_NUM
+		= CR.CINFO_NUM
+		LEFT OUTER JOIN COMIMG CI ON C.CINFO_NUM = CI.CINFO_NUM
+		LEFT OUTER JOIN COMPANY CP ON C.COM_ID = CP.COM_ID
+		LEFT OUTER JOIN
+		ACCOUNT A ON CP.COM_ID = A.ACC_ID
+		), SORTEDBOARD AS(
+		SELECT DISTINCT
+		CINFO_NUM
+		, CINFO_TITLE
+		, ROM_GRADE
+		, AVG(REV_RATE) AS REV_RATE
+		,
+		COUNT(REV_NUM) AS REV_NUM
+		, CIMG_NAME
+		, MIN(ROM_PRICE) AS ROM_PRICE
+		FROM
+		COMINFOVIEW
+		WHERE AREA_CODE = 'KR001'
+		AND <![CDATA[PROD_QTY - RES_CNT >= 1 ]]>
+		AND MEM_CODE = 'ROLE_HC'
+		<include refid="searchFrag" />
+		GROUP BY CINFO_NUM
+		, CINFO_TITLE
+		, ROM_GRADE
+		, CIMG_NAME
+		ORDER BY
+		CINFO_NUM DESC
+		) , RNUMBOARD AS (
+		SELECT ROWNUM RNUM, SORTEDBOARD.*
+		FROM
+		SORTEDBOARD
+		)
+		SELECT *
+		FROM RNUMBOARD
+		WHERE <![CDATA[ RNUM >= 1 AND RNUM <= 8 ]]>
+
+
+	</select>
+
+
+
+
+	<select id="getContinents" resultType="CategoryVO">
+		SELECT CAT_CODE
+		,CAT_NAM
+		FROM CATEGORY
+		WHERE CATU_CODE='NAT'
+	</select>
+
+
+
+	<select id="getNations" resultType="CategoryVO"
+		parameterType="string">
+		SELECT CAT_CODE
+		,CAT_NAM
+		FROM CATEGORY
+		WHERE CATU_CODE=
+		#{continentName}
+	</select>
+
+	<select id="getcities" resultType="CategoryVO"
+		parameterType="string">
+		SELECT CAT_CODE
+		,CAT_NAM
+		FROM CATEGORY
+		WHERE CATU_CODE=
+		#{countryName}
+	</select>
+
+	<!-- 상세페이지에서 호텔 정보 불러오는 쿼리(호텔명, 주소, 성급, 간단한 정보) -->
+	<select id="selectHotel" parameterType="int"
+		resultType="CompanyInfoVO">
+		SELECT DISTINCT(COMINFO.CINFO_TITLE)
+		,PROD.CINFO_NUM
+		,ROM_GRADE
+		,CINFO_INFO
+		,COM_ADDR
+		,COM_LATIT
+		,COM_LNGIT
+		FROM COMINFO JOIN
+		COMPANY ON COMINFO.COM_ID = COMPANY.COM_ID
+		LEFT OUTER JOIN PROD ON
+		COMINFO.CINFO_NUM = PROD.CINFO_NUM
+		LEFT OUTER JOIN ROOM ON PROD_NUM =
+		ROM_NUM
+		WHERE PROD.CINFO_NUM =
+		#{cinfoNum,jdbcType=NUMERIC}
+	</select>
+
+	<!-- 상세페이지에서 해당 호텔의 객실정보 불러오는 쿼리 -->
+	<select id="selectRoomInfo" parameterType="HotelRoomVO"
+		resultType="HotelRoomVO">
+		WITH BOOKING_INFO AS(
+		SELECT CINFO_NUM, P.PROD_NUM, RES_SDATE,
+		RES_EDATE, RES_CODE
+		FROM PROD P LEFT OUTER JOIN RESERVATION R ON
+		P.PROD_NUM = R.PROD_NUM
+		WHERE RES_SDATE BETWEEN
+		TO_DATE(#{resSdate,jdbcType=DATE}, 'YY/MM/DD') AND
+		TO_DATE(#{resEdate,jdbcType=DATE}, 'YY/MM/DD')
+		OR RES_EDATE BETWEEN
+		TO_DATE(#{resSdate,jdbcType=DATE}, 'YY/MM/DD') AND
+		TO_DATE(#{resEdate,jdbcType=DATE}, 'YY/MM/DD')
+		)
+		,COMINFOVIEW AS(
+		SELECT
+		C.CINFO_NUM, CINFO_TITLE, PROD_NUM, PROD_NAM, PROD_QTY
+		, ROM_NUM ,
+		ROM_NAM, ROM_PRICE, ROM_EXTNT, ROM_BED
+		, ROM_GRADE, ROM_GUEST, ROM_BAL,
+		ROM_SHO, ROM_AIRC, ROM_REF
+		, ROM_TV, ROM_HEAT, ROM_INT, ROM_COF,
+		ROM_PET
+		,(
+		SELECT COUNT(RES_CODE)
+		FROM BOOKING_INFO B
+		WHERE C.CINFO_NUM =
+		B.CINFO_NUM AND P.PROD_NUM = B.PROD_NUM
+		) AS RES_CNT
+		FROM COMINFO C JOIN
+		PROD P ON C.CINFO_NUM = P.CINFO_NUM
+		JOIN ROOM R ON PROD_NUM = ROM_NUM
+		WHERE C.CINFO_NUM =
+		#{cinfoNum,jdbcType=NUMERIC}
+		)
+		SELECT CINFO_NUM,
+		CINFO_TITLE
+		,ROM_NUM , ROM_NAM, ROM_PRICE, ROM_EXTNT, ROM_BED
+		,
+		ROM_GRADE, ROM_GUEST, ROM_BAL, ROM_SHO, ROM_AIRC, ROM_REF
+		, ROM_TV,
+		ROM_HEAT, ROM_INT, ROM_COF, ROM_PET
+		,PROD_QTY - RES_CNT AS REMAIN_ROOM
+		FROM COMINFOVIEW
+		WHERE <![CDATA[PROD_QTY - RES_CNT >= #{prodQty,jdbcType=NUMERIC} ]]>
+
+	</select>
+	<!--강명범 -->
+	<insert id="createHotelProduct" parameterType="HotelRoomVO">
+		INSERT INTO ROOM
+		(
+		ROM_NUM ,ROM_NAM,ROM_PRICE ,ROM_EXTNT,ROM_BED ,ROM_GRADE ,ROM_GUEST
+		,ROM_BAL ,ROM_SHO
+		,ROM_AIRC ,ROM_REF
+		,ROM_TV,ROM_HEAT,ROM_INT,ROM_COF,ROM_PET
+		)
+		VALUES(
+		#{romNum,jdbcType=NUMERIC}
+		,#{romNam,jdbcType=VARCHAR}
+		,#{romPrice,jdbcType=NUMERIC}
+		,#{romExtnt,jdbcType=VARCHAR}
+		,#{romBed,jdbcType=VARCHAR}
+		,#{romGrade,jdbcType=VARCHAR}
+		,#{romGuest,jdbcType=NUMERIC}
+		,#{romBal,jdbcType=VARCHAR}
+		,#{romSho,jdbcType=VARCHAR}
+		,#{romAirc,jdbcType=VARCHAR}
+		,#{romRef,jdbcType=VARCHAR}
+		,#{romTv,jdbcType=VARCHAR}
+		,#{romHeat,jdbcType=VARCHAR}
+		,#{romInt,jdbcType=VARCHAR}
+		,#{romCof,jdbcType=VARCHAR}
+		,#{romPet,jdbcType=VARCHAR}
+		)
+	</insert>
+	<update id="hotelOptionlUpdate" parameterType="HotelRoomVO">
+		UPDATE ROOM
+		SET
+		ROM_NAM = #{romNam,jdbcType=VARCHAR}
+		,ROM_PRICE = #{romPrice,jdbcType=NUMERIC}
+		,ROM_EXTNT = #{romExtnt,jdbcType=VARCHAR}
+		,ROM_BED = #{romBed,jdbcType=VARCHAR}
+		,ROM_GRADE = #{romGrade,jdbcType=VARCHAR}
+		,ROM_GUEST = #{romGuest,jdbcType=NUMERIC}
+		,ROM_BAL = #{romBal,jdbcType=VARCHAR}
+		,ROM_SHO = #{romSho,jdbcType=VARCHAR}
+		,ROM_AIRC = #{romAirc,jdbcType=VARCHAR}
+		,ROM_REF = #{romRef,jdbcType=VARCHAR}
+		,ROM_TV = #{romTv,jdbcType=VARCHAR}
+		,ROM_HEAT = #{romHeat,jdbcType=VARCHAR}
+		,ROM_INT = #{romInt,jdbcType=VARCHAR}
+		,ROM_COF = #{romCof,jdbcType=VARCHAR}
+		,ROM_PET = #{romPet,jdbcType=VARCHAR}
+		WHERE ROM_NUM =#{romNum}
+	</update>
+
+	<!-- 강명범 -->
+	<!-- <resultMap type="ProdVO" id="ProdMap" autoMapping="true"> -->
+	<!-- <id property="prodNum" column="PROD_NUM" /> -->
+	<!-- <collection property="prodImageList" ofType="ProdImageVO" -->
+	<!-- autoMapping="true"> -->
+	<!-- <id property="prodNum" column="PROD_NUM" /> -->
+	<!-- </collection> -->
+	<!-- </resultMap> -->
+	<select id="hotelRoomDetail" parameterType="int"
+		resultType="HotelRoomVO">
+		SELECT
+		A.PROD_NUM, A.PROD_NAM ,A.PROD_QTY ,A.PROD_CODE
+		,A.CINFO_NUM
+		,A.AREA_CODE ,A.COM_ID ,B.ROM_NUM ,B.ROM_NAM ,B.ROM_PRICE
+		,B.ROM_EXTNT ,B.ROM_BED
+		,B.ROM_GRADE ,B.ROM_GUEST ,B.ROM_BAL ,B.ROM_SHO ,B.ROM_AIRC ,B.ROM_REF
+		,B.ROM_TV
+		,B.ROM_HEAT ,B.ROM_INT,B.ROM_COF ,B.ROM_PET
+		FROM PROD A JOIN ROOM B
+		ON A.PROD_NUM = B.ROM_NUM
+		WHERE A.PROD_NUM =
+		#{prodNum}
+	</select>
+	<delete id="deleteHotel" parameterType="int">
+	DELETE FROM ROOM
+	WHERE ROM_NUM=#{romNum,jdbcType=NUMERIC}
+	
+	</delete>
+
+
+
+
+</mapper>

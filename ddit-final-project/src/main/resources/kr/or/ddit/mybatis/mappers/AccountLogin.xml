@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="kr.or.ddit.account.dao.AccountLoginDAO">
+	
+	<select id="accLogin" resultType="AccountVO">
+		SELECT 
+			 ACC_ID 
+			,ACC_PW
+			,ACC_RDATE
+			,ACC_STAT
+			,MEM_CODE
+			,ACC_INTRO
+			,ACC_IMG
+		  FROM ACCOUNT
+		 WHERE ACC_ID = #{accId}
+		   AND ACC_PW = #{accPw}
+	</select>
+</mapper>

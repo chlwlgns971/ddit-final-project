@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="kr.or.ddit.account.dao.AccountDAO">
+
+	<select id="selectAccount" parameterType="String"
+		resultType="AccountVO">
+		SELECT
+		ACC_ID
+		,ACC_PW
+		,ACC_RDATE
+		,ACC_STAT
+		,MEM_CODE
+		,ACC_INTRO
+		,ACC_IMG
+		FROM ACCOUNT
+		WHERE ACC_ID=#{accId,jdbcType=VARCHAR}
+	</select>
+	
+	<select id="selectAccInfo" parameterType="string" resultType="AccountVO">>
+		SELECT ACC_INTRO
+		FROM ACCOUNT
+		WHERE ACC_ID=#{accId,jdbcType=VARCHAR}
+	</select>
+
+
+	<update id="updatePswd" parameterType="AccountVO">
+		UPDATE ACCOUNT
+		SET
+		ACC_PW=#{accPw,jdbcType=VARCHAR}
+		WHERE ACC_ID=#{accId,jdbcType=VARCHAR}
+	</update>
+	<update id="updateAccInfo" parameterType="AccountVO">
+		UPDATE ACCOUNT
+		SET
+		ACC_INTRO=#{accIntro,jdbcType=VARCHAR}
+		WHERE
+		ACC_ID=#{accId,jdbcType=VARCHAR}
+	</update>
+	<update id="updateAccountImageName" parameterType="AccountVO">
+		UPDATE ACCOUNT
+		SET
+		ACC_IMG=#{accImg,jdbcType=VARCHAR}
+		WHERE
+		ACC_ID=#{accId,jdbcType=VARCHAR}
+	</update>
+	<select id="searchAccountPswd" parameterType="String" resultType="AccountVO">
+		SELECT ACC_ID, ACC_PW, ACC_RDATE, ACC_STAT, MEM_CODE
+		FROM ACCOUNT
+		WHERE ACC_ID=#{accId,jdbcType=VARCHAR}
+	</select>
+</mapper>

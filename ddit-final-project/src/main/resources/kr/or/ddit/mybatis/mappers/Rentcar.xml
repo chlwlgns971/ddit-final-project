@@ -1,0 +1,539 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.or.ddit.prod.rentcar.dao.RentcarDAO">
+
+	<!-- 검색 조건 detailMap에 담아 searchFrag로 사용 -->
+	<sql id="searchFrag">
+		<!-- <trim prefix=" AND " prefixOverrides="AND"> -->
+		<if test="detailMap neq null">                          <!-- detailMap.키 -->
+			<if
+				test="@org.apache.commons.lang3.StringUtils@isNotBlank(detailMap.carKind)">
+				AND CAR_KIND = #{detailMap.carKind}
+			</if>
+			<if
+				test="@org.apache.commons.lang3.StringUtils@isNotBlank(detailMap.carGear)">
+				AND CAR_GEAR = #{detailMap.carGear}
+			</if>
+			<if
+				test="@org.apache.commons.lang3.StringUtils@isNotBlank(detailMap.carAc)">
+				AND CAR_AC = #{detailMap.carAc}
+			</if>
+			<if
+				test="@org.apache.commons.lang3.StringUtils@isNotBlank(detailMap.carHeat)">
+				AND CAR_HEAT = #{detailMap.carHeat}
+			</if>
+			<if
+				test="@org.apache.commons.lang3.StringUtils@isNotBlank(detailMap.carNavi)">
+				AND CAR_NAVI = #{detailMap.carNavi}
+			</if>
+			<if
+				test="@org.apache.commons.lang3.StringUtils@isNotBlank(detailMap.carHp)">
+				AND CAR_HP = #{detailMap.carHp}
+			</if>
+			<if
+				test="@org.apache.commons.lang3.StringUtils@isNotBlank(detailMap.carCharg)">
+				AND CAR_CHARG = #{detailMap.carCharg}
+			</if>
+		</if>
+
+	</sql>
+
+	<select id="getContinents" resultType="CategoryVO">
+		SELECT CAT_CODE
+		,CAT_NAM
+		FROM CATEGORY
+		WHERE CATU_CODE='NAT'
+	</select>
+
+
+
+	<select id="getNations" resultType="CategoryVO"
+		parameterType="string">
+		SELECT CAT_CODE
+		,CAT_NAM
+		FROM CATEGORY
+		WHERE CATU_CODE=
+		#{continentName}
+	</select>
+
+	<select id="getcities" resultType="CategoryVO"
+		parameterType="string">
+		SELECT CAT_CODE
+		,CAT_NAM
+		FROM CATEGORY
+		WHERE CATU_CODE=
+		#{countryName}
+	</select>
+
+	<select id="rentCarDetail" parameterType="int"
+		resultType="RentCarVO">
+		SELECT
+		A.PROD_NUM ,A.CAR_KIND ,A.CAR_PRICE ,A.CAR_FUEL
+		,A.CAR_BRAND,A.CAR_COLOR ,A.CAR_SEAT ,A.CAR_HP
+		,A.CAR_CHARG ,A.CAR_NAVI ,A.CAR_HOLDER
+		,B.PROD_NUM ,B.PROD_NAM, B.PROD_QTY, B.PROD_CODE
+		FROM CAR A JOIN PROD B
+		ON A.PROD_NUM=B.PROD_NUM
+		WHERE A.PROD_NUM=#{prodNum,jdbcType=NUMERIC}
+	</select>
+	
+	<select id="defaultTotalRecord" parameterType="PagingVO" resultType="int">
+
+
+		WITH RESERVATIONVIEW AS
+		(
+		SELECT CINFO_NUM, P.PROD_NUM, RES_SDATE,
+		RES_EDATE, RES_CODE
+		FROM PROD P LEFT OUTER JOIN RESERVATION R ON
+		P.PROD_NUM = R.PROD_NUM
+		WHERE RES_SDATE BETWEEN
+		TO_DATE('22/12/17',
+		'YY/MM/DD') AND
+		TO_DATE('22/12/30',
+		'YY/MM/DD')
+		OR RES_EDATE
+		BETWEEN TO_DATE('22/12/17',
+		'YY/MM/DD') AND
+		TO_DATE('22/12/30',
+		'YY/MM/DD')
+		),COMINFOVIEW
+		AS(
+		SELECT C.CINFO_NUM
+		, p.PROD_NUM, PROD_NAM
+		, PROD_QTY
+		, AREA_CODE
+		,
+		MEM_CODE
+		, CAR_KIND
+		, CAR_PRICE
+		, CAR_FUEL
+		, CAR_BRAND
+		, CAR_COLOR
+		,
+		CAR_SEAT
+		, CAR_HP
+		, CAR_CHARG
+		, CAR_NAVI
+		, CAR_HOLDER
+		, CAR_HEAT
+		, CAR_AC
+		,
+		CAR_GEAR
+		, CAR_BAG
+		,(
+		SELECT COUNT(RES_CODE)
+		FROM RESERVATIONVIEW R
+		WHERE
+		C.CINFO_NUM = R.CINFO_NUM AND P.PROD_NUM = R.PROD_NUM
+		) AS RES_CNT
+		FROM
+		COMINFO C JOIN PROD P ON C.CINFO_NUM = P.CINFO_NUM
+		LEFT OUTER JOIN car
+		ca ON P.PROD_NUM = ca. prod_NUM
+		LEFT OUTER JOIN COMREV CR ON
+		C.CINFO_NUM = CR.CINFO_NUM
+		LEFT OUTER JOIN COMIMG CI ON C.CINFO_NUM =
+		CI.CINFO_NUM
+		LEFT OUTER JOIN COMPANY CP ON C.COM_ID = CP.COM_ID
+		LEFT
+		OUTER JOIN ACCOUNT A ON CP.COM_ID = A.ACC_ID
+		)
+		SELECT COUNT(PROD_NUM)
+		FROM COMINFOVIEW
+		WHERE AREA_CODE =
+		'KR002'
+		AND <![CDATA[PROD_QTY - RES_CNT >= 1 ]]>
+		AND MEM_CODE = 'ROLE_RC'
+
+	</select>
+	
+	
+	<select id="defaultList" parameterType="PagingVO" resultType="RentCarVO">
+	
+
+		WITH RESERVATIONVIEW AS
+		(
+		SELECT CINFO_NUM, P.PROD_NUM, RES_SDATE,
+		RES_EDATE, RES_CODE
+		FROM PROD P LEFT OUTER JOIN RESERVATION R ON
+		P.PROD_NUM = R.PROD_NUM
+		WHERE RES_SDATE BETWEEN TO_DATE('22/12/17', 'YY/MM/DD') AND
+		TO_DATE('22/12/30', 'YY/MM/DD')
+		OR RES_EDATE BETWEEN TO_DATE('22/12/17', 'YY/MM/DD') AND
+		TO_DATE('22/12/30','YY/MM/DD')
+		),COMINFOVIEW AS(
+		SELECT C.CINFO_NUM, CINFO_TITLE
+		, P.PROD_NUM, PROD_NAM
+		, PROD_IMG
+		, PROD_QTY
+		, CINFO_ARATE
+		, CAR_KIND
+		, CR.REV_RATE
+		, CR.REV_NUM
+		, AREA_CODE
+		, MEM_CODE
+		, CAR_PRICE
+		, CAR_FUEL
+		, CAR_BRAND
+		, CAR_COLOR
+		, CAR_SEAT
+		, CAR_HP
+		, CAR_CHARG
+		, CAR_NAVI
+		, CAR_HOLDER
+		, CAR_HEAT
+		, CAR_AC
+		, CAR_GEAR
+		, CAR_BAG
+		,(
+		SELECT
+		COUNT(RES_CODE)
+		FROM RESERVATIONVIEW R
+		WHERE C.CINFO_NUM = R.CINFO_NUM
+		AND P.PROD_NUM = R.PROD_NUM
+		) AS RES_CNT
+		FROM COMINFO C JOIN PROD P ON
+		C.CINFO_NUM = P.CINFO_NUM
+		LEFT OUTER JOIN CAR CA ON P.PROD_NUM = CA.
+		PROD_NUM
+		LEFT OUTER JOIN COMREV CR ON C.CINFO_NUM = CR.CINFO_NUM
+		LEFT
+		OUTER JOIN COMIMG CI ON C.CINFO_NUM = CI.CINFO_NUM
+		LEFT OUTER JOIN
+		COMPANY CP ON C.COM_ID = CP.COM_ID
+		LEFT OUTER JOIN ACCOUNT A ON
+		CP.COM_ID = A.ACC_ID
+		), SORTEDBOARD AS(
+		SELECT PROD_NUM
+		, NVL(CINFO_ARATE, 0) AS CINFO_ARATE
+		, NVL(COUNT(REV_NUM),0) AS REV_NUM
+		, CAR_PRICE
+		, CAR_KIND
+		, PROD_NAM
+		, CAR_FUEL
+		, CAR_BRAND
+		, CAR_COLOR
+		, CAR_SEAT
+		, CAR_HP
+		, CAR_CHARG
+		, CAR_NAVI
+		, CAR_HOLDER
+		, CAR_HEAT
+		, CAR_AC
+		, CAR_GEAR
+		, CAR_BAG
+		, PROD_IMG
+		FROM COMINFOVIEW
+		WHERE AREA_CODE =
+		'KR001'
+		AND MEM_CODE = 'ROLE_RC'
+
+		GROUP BY PROD_NUM
+		, CINFO_NUM
+		, CAR_PRICE
+		, CAR_KIND
+		, CINFO_ARATE
+		, PROD_NAM
+		, CAR_FUEL
+		, CAR_BRAND
+		, CAR_COLOR
+		, CAR_SEAT
+		, CAR_HP
+		, CAR_CHARG
+		, CAR_NAVI
+		, CAR_HOLDER
+		, CAR_HEAT
+		, CAR_AC
+		, CAR_GEAR
+		, CAR_BAG
+		, PROD_IMG
+		ORDER BY
+		CINFO_NUM DESC
+		) , RNUMBOARD AS (
+		SELECT ROWNUM RNUM, SORTEDBOARD.*
+		FROM SORTEDBOARD
+		)
+		SELECT *
+		FROM RNUMBOARD
+		WHERE <![CDATA[ RNUM >= #{startRow} AND RNUM <= #{endRow} ]]>
+	
+	
+	</select>
+	
+
+
+	<!-- 렌터카 검색결과 조회 쿼리 -->
+	<select id="selectRentCarList" parameterType="PagingVO"
+		resultType="RentCarVO">
+
+		WITH RESERVATIONVIEW AS
+		(
+		SELECT CINFO_NUM, P.PROD_NUM, RES_SDATE,
+		RES_EDATE, RES_CODE
+		FROM PROD P LEFT OUTER JOIN RESERVATION R ON
+		P.PROD_NUM = R.PROD_NUM
+		WHERE RES_SDATE BETWEEN
+		TO_DATE(#{detailMap.resSdate,jdbcType=DATE},
+		'YY/MM/DD') AND
+		TO_DATE(#{detailMap.resEdate,jdbcType=DATE},
+		'YY/MM/DD')
+		OR RES_EDATE
+		BETWEEN TO_DATE(#{detailMap.resSdate,jdbcType=DATE},
+		'YY/MM/DD') AND
+		TO_DATE(#{detailMap.resEdate,jdbcType=DATE},
+		'YY/MM/DD')
+		),COMINFOVIEW
+		AS(
+		SELECT C.CINFO_NUM, CINFO_TITLE
+		, P.PROD_NUM, PROD_NAM
+		, PROD_QTY
+		, CINFO_ARATE
+		, CAR_KIND
+		, CR.REV_RATE
+		, CR.REV_NUM
+		, AREA_CODE
+		, MEM_CODE
+		, CAR_PRICE
+		, CAR_FUEL
+		, CAR_BRAND
+		, CAR_COLOR
+		, CAR_SEAT
+		, CAR_HP
+		, CAR_CHARG
+		, CAR_NAVI
+		, CAR_HOLDER
+		, CAR_HEAT
+		, CAR_AC
+		, CAR_GEAR
+		, CAR_BAG
+		, PROD_IMG
+		,(
+		SELECT
+		COUNT(RES_CODE)
+		FROM RESERVATIONVIEW R
+		WHERE C.CINFO_NUM = R.CINFO_NUM
+		AND P.PROD_NUM = R.PROD_NUM
+		) AS RES_CNT
+		FROM COMINFO C JOIN PROD P ON
+		C.CINFO_NUM = P.CINFO_NUM
+		LEFT OUTER JOIN CAR CA ON P.PROD_NUM = CA.
+		PROD_NUM
+		LEFT OUTER JOIN COMREV CR ON C.CINFO_NUM = CR.CINFO_NUM
+		LEFT
+		OUTER JOIN COMIMG CI ON C.CINFO_NUM = CI.CINFO_NUM
+		LEFT OUTER JOIN
+		COMPANY CP ON C.COM_ID = CP.COM_ID
+		LEFT OUTER JOIN ACCOUNT A ON
+		CP.COM_ID = A.ACC_ID
+		), SORTEDBOARD AS(
+		SELECT PROD_NUM
+		, NVL(CINFO_ARATE, 0) AS CINFO_ARATE
+		, NVL(COUNT(REV_NUM),0) AS REV_NUM
+		, CAR_PRICE
+		, CAR_KIND
+		, PROD_NAM
+		, CAR_FUEL
+		, CAR_BRAND
+		, CAR_COLOR
+		, CAR_SEAT
+		, CAR_HP
+		, CAR_CHARG
+		, CAR_NAVI
+		, CAR_HOLDER
+		, CAR_HEAT
+		, CAR_AC
+		, CAR_GEAR
+		, CAR_BAG
+		, PROD_IMG
+		FROM COMINFOVIEW
+		WHERE AREA_CODE =
+		#{detailMap.cityName,jdbcType=VARCHAR}
+		<include refid="searchFrag" />
+		AND MEM_CODE = 'ROLE_RC'
+
+		GROUP BY PROD_NUM
+		, CINFO_NUM
+		, CAR_PRICE
+		, CAR_KIND
+		, CINFO_ARATE
+		, PROD_NAM
+		, CAR_FUEL
+		, CAR_BRAND
+		, CAR_COLOR
+		, CAR_SEAT
+		, CAR_HP
+		, CAR_CHARG
+		, CAR_NAVI
+		, CAR_HOLDER
+		, CAR_HEAT
+		, CAR_AC
+		, CAR_GEAR
+		, CAR_BAG
+		, PROD_IMG
+		ORDER BY
+		PROD_NUM DESC
+
+		) , RNUMBOARD AS (
+		SELECT ROWNUM RNUM, SORTEDBOARD.*
+		FROM SORTEDBOARD
+		)
+		SELECT *
+		FROM RNUMBOARD
+		WHERE <![CDATA[ RNUM >= #{startRow} AND RNUM <= #{endRow} ]]>
+
+	</select>
+
+	<!-- 검색결과페이징쿼리 -->
+	<select id="selectTotalRecord" parameterType="PagingVO"
+		resultType="int">
+
+		WITH RESERVATIONVIEW AS
+		(
+		SELECT CINFO_NUM, P.PROD_NUM, RES_SDATE,
+		RES_EDATE, RES_CODE
+		FROM PROD P LEFT OUTER JOIN RESERVATION R ON
+		P.PROD_NUM = R.PROD_NUM
+		WHERE RES_SDATE BETWEEN
+		TO_DATE(#{detailMap.resSdate,jdbcType=DATE},
+		'YY/MM/DD') AND
+		TO_DATE(#{detailMap.resEdate,jdbcType=DATE},
+		'YY/MM/DD')
+		OR RES_EDATE
+		BETWEEN TO_DATE(#{detailMap.resSdate,jdbcType=DATE},
+		'YY/MM/DD') AND
+		TO_DATE(#{detailMap.resEdate,jdbcType=DATE},
+		'YY/MM/DD')
+		),COMINFOVIEW
+		AS(
+		SELECT C.CINFO_NUM
+		, p.PROD_NUM, PROD_NAM
+		, PROD_QTY
+		, AREA_CODE
+		,
+		MEM_CODE
+		, CAR_KIND
+		, CAR_PRICE
+		, CAR_FUEL
+		, CAR_BRAND
+		, CAR_COLOR
+		,
+		CAR_SEAT
+		, CAR_HP
+		, CAR_CHARG
+		, CAR_NAVI
+		, CAR_HOLDER
+		, CAR_HEAT
+		, CAR_AC
+		,
+		CAR_GEAR
+		, CAR_BAG
+		,(
+		SELECT COUNT(RES_CODE)
+		FROM RESERVATIONVIEW R
+		WHERE
+		C.CINFO_NUM = R.CINFO_NUM AND P.PROD_NUM = R.PROD_NUM
+		) AS RES_CNT
+		FROM
+		COMINFO C JOIN PROD P ON C.CINFO_NUM = P.CINFO_NUM
+		LEFT OUTER JOIN car
+		ca ON P.PROD_NUM = ca. prod_NUM
+		LEFT OUTER JOIN COMREV CR ON
+		C.CINFO_NUM = CR.CINFO_NUM
+		LEFT OUTER JOIN COMIMG CI ON C.CINFO_NUM =
+		CI.CINFO_NUM
+		LEFT OUTER JOIN COMPANY CP ON C.COM_ID = CP.COM_ID
+		LEFT
+		OUTER JOIN ACCOUNT A ON CP.COM_ID = A.ACC_ID
+		)
+		SELECT COUNT(PROD_NUM)
+		FROM COMINFOVIEW
+		WHERE AREA_CODE =
+		#{detailMap.cityName,jdbcType=VARCHAR}
+		AND <![CDATA[PROD_QTY - RES_CNT >= 1 ]]>
+		AND MEM_CODE = 'ROLE_RC'
+		<include refid="searchFrag" />
+
+	</select>
+
+	<select id="selectRentcar" parameterType="int"
+		resultType="RentCarVO">
+		SELECT CAR.prod_num
+		, CAR_KIND
+		, CAR_PRICE
+		, CAR_FUEL
+		,
+		CAR_BRAND
+		, CAR_COLOR
+		, CAR_SEAT
+		, CAR_HP
+		, CAR_CHARG
+		, CAR_NAVI
+		,
+		CAR_HOLDER
+		, CAR_HEAT
+		, CAR_AC
+		, CAR_GEAR
+		, CAR_BAG
+		, CINFO_TITLE
+		,
+		COMINFO.CINFO_NUM
+		, COMINFO.CINFO_INFO
+		, COM_LATIT
+		, COM_LNGIT
+		, COM_ADDR
+		, PROD_IMG
+		FROM COMPANY JOIN PROD ON COMPANY.COM_ID = PROD.COM_ID
+		JOIN CAR ON
+		PROD.PROD_NUM = CAR.PROD_NUM
+		JOIN COMINFO ON COMPANY.COM_ID =
+		COMINFO.COM_ID
+		WHERE CAR.PROD_NUM = #{prodNum,jdbcType=NUMERIC}
+
+	</select>
+	<!-- 강명범 -->
+	<insert id="createRentCarProduct" parameterType="RentCarVO">
+		INSERT INTO CAR
+		(
+		PROD_NUM
+		,CAR_KIND
+		,CAR_PRICE
+		,CAR_FUEL
+		,CAR_BRAND
+		,CAR_COLOR
+		,CAR_SEAT
+		,CAR_HP
+		,CAR_CHARG
+		,CAR_NAVI
+		,CAR_HOLDER
+		,CAR_HEAT
+		,CAR_AC
+		,CAR_GEAR
+		,CAR_BAG
+		)
+		VALUES(
+		#{prodNum,jdbcType=NUMERIC}
+		,#{carKind,jdbcType=VARCHAR}
+		,#{carPrice,jdbcType=NUMERIC}
+		,#{carFuel,jdbcType=VARCHAR}
+		,#{carBrand,jdbcType=VARCHAR}
+		,#{carColor,jdbcType=VARCHAR}
+		,#{carSeat,jdbcType=NUMERIC}
+		,#{carHp,jdbcType=VARCHAR}
+		,#{carCharg,jdbcType=VARCHAR}
+		,#{carNavi,jdbcType=VARCHAR}
+		,#{carHolder,jdbcType=VARCHAR}
+		,#{carHeat,jdbcType=VARCHAR}
+		,#{carAc,jdbcType=VARCHAR}
+		,#{carGear,jdbcType=VARCHAR}
+		,#{carBag,jdbcType=VARCHAR}
+		)
+	</insert>
+	<delete id="deleteRentCar" parameterType="int">
+	DELETE FROM CAR
+	WHERE PROD_NUM=#{prodNum,jdbcType=NUMERIC}
+	
+	</delete>
+
+
+
+</mapper>

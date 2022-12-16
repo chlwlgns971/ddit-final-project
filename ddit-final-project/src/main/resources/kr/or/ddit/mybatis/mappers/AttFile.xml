@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.or.ddit.file.dao.AttFileDAO">
+	<insert id="insertAttFile" parameterType="AttFileVO">
+		INSERT INTO ATTFILE
+		(
+			AFILE_NAME
+			,AFILE_ONAME
+			,AFILE_SIZE
+			,AFILE_FSIZE
+			,POST_NUM
+			,ART_NUM
+			,AFILE_ID
+			,AFILE_LOCAT
+			,AFILE_DATE
+		)
+		VALUES
+		(
+			#{afileName,jdbcType=VARCHAR}
+			,#{afileOname,jdbcType=VARCHAR}
+			,#{afileSize,jdbcType=NUMERIC}
+			,#{afileFsize,jdbcType=VARCHAR}
+			,#{postNum,jdbcType=NUMERIC}
+			,#{artNum,jdbcType=NUMERIC}
+			,#{afileId,jdbcType=VARCHAR}
+			,#{afileLocat,jdbcType=VARCHAR}
+			,SYSDATE
+		)
+	</insert>
+	
+	<update id="updateAttFile" parameterType="Map">
+		UPDATE ATTFILE
+		SET
+		POST_NUM = #{postNum, jdbcType=NUMERIC}
+		,ART_NUM = #{artNum, jdbcType=NUMERIC}
+		WHERE AFILE_ID = #{accId, jdbcType=VARCHAR} AND (POST_NUM = 0 AND ART_NUM = 0)
+	</update>
+	
+	<delete id="deletePostFile" parameterType="int">
+		DELETE FROM ATTFILE
+		WHERE POST_NUM = #{postNum}
+	</delete>
+	
+	<delete id="deleteArtFile" parameterType="int">
+		DELETE FROM ATTFILE
+		WHERE ART_NUM = #{artNum}
+	</delete>
+	
+	<select id="getPostFileUrl" parameterType="int" resultType="String">
+		SELECT AFILE_NAME FROM ATTFILE WHERE POST_NUM = #{postNum}
+	</select>
+	
+	<select id="getArticleFileUrl" parameterType="int" resultType="String">
+		SELECT AFILE_NAME FROM ATTFILE WHERE ART_NUM = #{artNum}
+	</select>
+</mapper>

@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE tiles-definitions PUBLIC "-//Apache Software Foundation//DTD Tiles Configuration 3.0//EN" "http://tiles.apache.org/dtds/tiles-config_3_0.dtd" >
+<tiles-definitions>
+<!--  	definition name == logical view name -->
+ 
+<!-- 	<definition name="parent_kmb" template="/WEB-INF/views/templates/mypage.jsp"> -->
+<!--   </definition> -->
+  
+	
+	
+	<definition name="parent_kmb" template="/WEB-INF/views/templates/index.jsp">
+		<put-attribute name="title" value="여행의 정서, 여정." />
+		<put-attribute name="preScript" value="/WEB-INF/views/includee/preScript.jsp"/>
+  		<put-attribute name="headerMenu" value="/WEB-INF/views/includee/headerMenu.jsp"/>
+  		<put-attribute name="main" value="/WEB-INF/views/main.jsp" />
+  		<put-attribute name="footer" value="/WEB-INF/views/includee/footer.jsp"/>
+  		<put-attribute name="postScript" value="/WEB-INF/views/includee/postScript.jsp"/>
+  		<put-attribute name="kmbPlugin" value="/WEB-INF/views/myPage/member/kmbPlugin.jsp"/>
+		<put-attribute name="kmbCSS" value="/WEB-INF/views/myPage/member/kmbCss.jsp"/>
+		<put-attribute name="leftMenu" value="/WEB-INF/views/myPage/member/leftMenu.jsp"/>
+	</definition>
+	
+	
+	<definition name="myPage/member/personal/**" template="/WEB-INF/views/templates/mypage.jsp" extends="parent_kmb">
+		<put-attribute name="main" value="/WEB-INF/views/myPage/member/personal/{1}.jsp" />
+	</definition>
+	
+	<definition name="myPage/member/company/**" template="/WEB-INF/views/templates/mypage.jsp" extends="parent_kmb">
+		<put-attribute name="main" value="/WEB-INF/views/myPage/member/company/{1}.jsp" />
+	</definition>
+	
+	<definition name="popUp/*" template="/WEB-INF/views/templates/popUp.jsp">
+		<put-attribute name="title" value="여행의 정서, 여정." />
+		<put-attribute name="popUpPrescript" value="/WEB-INF/views/includee/preScript.jsp"/>
+		<put-attribute name="popUpMain" value="/WEB-INF/views/popUp/{1}.jsp" />
+		<put-attribute name="css" value="/WEB-INF/views/myPage/member/kmbCss.jsp"/>
+	</definition>
+	
+<!-- 	<definition name="signIn/*" template="/WEB-INF/views/includee/myPage/member/signIn.jsp"> -->
+<!-- 		<put-attribute name="title" value="여행의 정서, 여정." /> -->
+<!-- 		<put-attribute name="preScript" value="/WEB-INF/views/includee/preScript.jsp"/> -->
+<!--   		<put-attribute name="headerMenu" value="/WEB-INF/views/includee/headerMenu.jsp"/> -->
+<!-- 		<put-attribute name="main" value="/WEB-INF/views/includee/myPage/member/personal/{1}.jsp" /> -->
+<!--   		<put-attribute name="footer" value="/WEB-INF/views/includee/footer.jsp"/> -->
+<!--   		<put-attribute name="postScript" value="/WEB-INF/views/includee/postScript.jsp"/> -->
+<!-- 	</definition> -->
+</tiles-definitions>

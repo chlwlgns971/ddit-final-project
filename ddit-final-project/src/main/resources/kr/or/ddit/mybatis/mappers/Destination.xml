@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.or.ddit.destination.dao.DestinationDAO">
+	<select id="selectDestination" parameterType="String" resultType="DestinationVO">
+		SELECT D.AREA_CODE, D.DEST_LANG, D.DEST_EXTEN, D.DEST_POPUL, D.DEST_TIME, D.DEST_RELIG
+		,D.DEST_VOLT, D.DEST_CUR, D.DEST_VISA, D.DEST_PRICE, D.DEST_WEATHER, D.DEST_BTIME
+		,D.DEST_INFO, D.DEST_CONV, D.DEST_AIR, D.DEST_BANNER, D.DEST_WIMG, D.DEST_IMG1, D.DEST_IMG2, D.DEST_IMG3, A.AREA_NAME
+		FROM DESTINATION D INNER JOIN AREA A ON(D.AREA_CODE = A.AREA_CODE) 
+		WHERE D.AREA_CODE=#{areaCode, jdbcType=VARCHAR}
+	</select>
+	<insert id="insertSearchHistory" parameterType="SearchRecordVO">
+		INSERT 
+		INTO SEARCHRECORD 
+			(
+		    	ACC_ID,
+		    	SEARCH_DATE,
+		    	DEST_CODE
+			) VALUES (
+			    #{accId}
+			    , SYSDATE
+			    , #{destCode}
+			)
+	
+	</insert>
+</mapper>

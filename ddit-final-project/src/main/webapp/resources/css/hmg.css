@@ -1,0 +1,36 @@
+@charset "UTF-8";
+
+.modal-dialog{
+	max-width: 800px;
+}
+a{
+ color: #969696;
+ 
+}
+p:hover{
+	color: #01ace4;
+	font-size: 0.885rem;
+}
+a:hover{
+	color: #01ace4;
+}
+.modal-header{
+	background-color: #e6f7fc;
+}
+.modal-header h5{
+	color: #01ace4;
+}
+th a{
+	color: black;
+}
+label{
+	color: #969696;
+}
+label:hover{
+	color: #01ace4;
+	font-size: 0.885rem;
+}
+.addCusNum{
+	margin-bottom: 1rem;
+    padding-top: inherit;
+}

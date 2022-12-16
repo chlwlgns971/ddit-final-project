@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE tiles-definitions PUBLIC "-//Apache Software Foundation//DTD Tiles Configuration 3.0//EN" "http://tiles.apache.org/dtds/tiles-config_3_0.dtd" >
+<tiles-definitions>
+<!-- 	<definition name="articleForm" template="/WEB-INF/views/templates/article/articleFormTemplate.jsp"> -->
+<!-- 		<put-attribute name="title" value="rest4Trip" /> -->
+<!-- 		<put-attribute name="preScript" value="/WEB-INF/views/includee/preScript.jsp"/> -->
+<!-- 		<put-attribute name="headerMenu" value="/WEB-INF/views/includee/headerMenu2.jsp"/> -->
+<!-- 		<put-attribute name="footer" value="/WEB-INF/views/includee/footer.jsp"/> -->
+<!-- 		<put-attribute name="postScript" value="/WEB-INF/views/includee/postScript.jsp"/> -->
+<!-- 	</definition> -->
+	
+<!-- 	<definition name="parent" template="/WEB-INF/views/templates/article/articleTemplate.jsp"> -->
+<!-- 		<put-attribute name="title" value="rest4Trip" /> -->
+<!-- 		<put-attribute name="preScript" value="/WEB-INF/views/includee/preScript.jsp"/> -->
+<!-- 		<put-attribute name="headerMenu" value="/WEB-INF/views/includee/headerMenu2.jsp"/> -->
+<!-- 		<put-attribute name="modal" value="/WEB-INF/views/login/loginMenu.jsp"/> -->
+<!-- 		<put-attribute name="rightMenu" value="/WEB-INF/views/includee/article/rightMenu.jsp"/> -->
+<!-- 		<put-attribute name="footer" value="/WEB-INF/views/includee/footer.jsp"/> -->
+<!-- 		<put-attribute name="postScript" value="/WEB-INF/views/includee/postScript.jsp"/> -->
+<!-- 	</definition> -->
+		  
+<!-- 	<definition name="ins" template="/WEB-INF/views/templates/insurance/insuranceTemplate.jsp"> -->
+<!-- 		<put-attribute name="title" value="rest4Trip" /> -->
+<!-- 		<put-attribute name="preScript" value="/WEB-INF/views/includee/preScript.jsp"/> -->
+<!-- 		<put-attribute name="headerMenu" value="/WEB-INF/views/includee/headerMenu2.jsp"/> -->
+<!-- 		<put-attribute name="modal" value="/WEB-INF/views/login/loginMenu.jsp"/> -->
+<!-- 		<put-attribute name="footer" value="/WEB-INF/views/includee/footer.jsp"/> -->
+<!-- 		<put-attribute name="postScript" value="/WEB-INF/views/includee/postScript.jsp"/> -->
+<!-- 	</definition> -->
+	
+	<definition name="parent" template="/WEB-INF/views/templates/mainTemplate.jsp">
+		<put-attribute name="title" value="여행의 정서, 여정" />
+		<put-attribute name="preScript" value="/WEB-INF/views/includee/preScript.jsp"/>
+  		<put-attribute name="headerMenu" value="/WEB-INF/views/includee/headerMenu2.jsp"/>
+  		<put-attribute name="main" value="/WEB-INF/views/main.jsp" />
+  		<put-attribute name="modal" value="/WEB-INF/views/login/loginMenu.jsp"/>
+  		<put-attribute name="footer" value="/WEB-INF/views/includee/footer.jsp"/>
+  		<put-attribute name="postScript" value="/WEB-INF/views/includee/postScript.jsp"/>
+	</definition>
+	
+	<definition name="article/**" extends="parent">
+		<put-attribute name="main" value="/WEB-INF/views/article/{1}.jsp" />
+	</definition>
+	
+<!-- 	<definition name="article/articleForm" extends="parent"> -->
+<!-- 		<put-attribute name="main" value="/WEB-INF/views/article/articleForm.jsp" /> -->
+<!-- 	</definition> -->
+	
+	<definition name="insurance/*" extends="parent">
+		<put-attribute name="preScript" value="/WEB-INF/views/includee/booking/preScript.jsp"/>
+		<put-attribute name="main" value="/WEB-INF/views/insurance/{1}.jsp"/>
+	</definition>
+
+
+</tiles-definitions>

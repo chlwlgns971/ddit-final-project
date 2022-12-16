@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="kr.or.ddit.prod.image.dao.ProdImageDAO">
+	<insert id="insertProdImages" parameterType="ProdVO">
+		INSERT ALL
+		<foreach collection="prodImageList" item="prodImg" index="idx">
+			INTO PRODIMG
+			(
+			PROD_NUM
+			,PIMG_NAME
+			,PIMG_ONAME
+			,PIMG_EXNAME
+			,PIMG_SIZE
+			,PIMG_FSIZE
+			,PIMG_LOCAT
+			)
+			VALUES
+			(
+			 #{prodImg.prodNum,jdbcType=NUMERIC}
+			, #{prodImg.pImgName,jdbcType=VARCHAR}
+			, #{prodImg.pImgOname,jdbcType=VARCHAR}
+			, #{prodImg.pImgExnam,jdbcType=VARCHAR}
+			, #{prodImg.pImgSize,jdbcType=NUMERIC}
+			, #{prodImg.pImgFSize,jdbcType=VARCHAR}
+			, #{prodImg.pImgLocat,jdbcType=VARCHAR}
+	
+			)
+		</foreach>
+		SELECT * FROM DUAL
+	</insert>
+	
+	<insert id="changeInsertProdImages" parameterType="ProdImageVO">
+			INSERT INTO PRODIMG
+			(
+			PROD_NUM
+			,PIMG_NAME
+			,PIMG_ONAME
+			,PIMG_EXNAME
+			,PIMG_SIZE
+			,PIMG_FSIZE
+			,PIMG_LOCAT
+			)
+			VALUES
+			(
+			 #{prodNum,jdbcType=NUMERIC}
+			, #{pImgName,jdbcType=VARCHAR}
+			, #{pImgOname,jdbcType=VARCHAR}
+			, #{pImgExnam,jdbcType=VARCHAR}
+			, #{pImgSize,jdbcType=NUMERIC}
+			, #{pImgFSize,jdbcType=VARCHAR}
+			, #{pImgLocat,jdbcType=VARCHAR}
+	
+			)
+	</insert>
+	
+	<select id="SearchProdImge" parameterType="ProdImageVO" resultType="int">
+	SELECT COUNT(*)
+	FROM PRODIMG
+	WHERE PROD_NUM = #{prodNum,jdbcType=NUMERIC}
+	</select>
+
+	<select id="selectProdImages" parameterType="int" resultType="ProdImageVO">
+		SELECT PIMG_NAME ,PIMG_ONAME ,PIMG_SIZE
+		,PIMG_FSIZE ,PIMG_LOCAT ,PROD_NUM,PIMG_EXNAME
+		FROM PRODIMG
+		WHERE PROD_NUM = #{prodNum,jdbcType=NUMERIC}
+	</select>
+	
+	
+	<delete id="deletePrImg" parameterType="String">
+		DELETE FROM PRODIMG
+		WHERE PIMG_NAME = #{pImgName}
+	</delete>
+	
+	<delete id="deleteProdImage" parameterType="String">
+		DELETE FROM PRODIMG
+		WHERE PIMG_NAME IN 
+			<foreach collection="delProdImageName" open="(" close=")" item="pImgName" separator=",">
+				#{pImgName}
+			</foreach>
+		
+	</delete>
+</mapper>

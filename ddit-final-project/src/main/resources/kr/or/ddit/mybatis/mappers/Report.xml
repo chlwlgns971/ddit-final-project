@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.or.ddit.report.dao.ReportDAO">
+<!-- 	<select id="selectReport" parameterType="PagingVO" resultType="ReportVO"> -->
+<!-- 		SELECT REPLY_NUM, REPLY_CONT -->
+<!-- 		, TO_CHAR(REPLY_DATE, 'MONTHfmDD, YYYY','NLS_DATE_LANGUAGE=ENGLISH') REPLY_DATE, REPLY_PNUM, REPLY_SCOPE, ART_NUM, POST_NUM, ACC_ID, REPLY_REF, REPLY_RE_STEP, REPLY_RE_LEVEL -->
+<!-- 		FROM REPLY -->
+<!-- 		WHERE 1 = 1 -->
+<!-- 	</select>	 -->
+	<insert id="insertReport" parameterType="ReportVO">
+		<selectKey resultType="int" keyProperty="repNum" order="BEFORE">
+			SELECT REP_SEQ.nextval
+			FROM DUAL
+		</selectKey>
+		INSERT INTO REPORT
+		(REP_NUM
+		, MEM_ID
+		, ART_NUM
+		, REP_CONT
+		, REP_CODE
+		, REP_BCODE
+		, REP_ID
+		)VALUES(
+		  #{repNum, jdbcType=NUMERIC}
+		, #{memId, jdbcType=VARCHAR}
+		, #{artNum, jdbcType=NUMERIC}
+		, #{repCont, jdbcType=VARCHAR}
+		, #{repCode, jdbcType=VARCHAR}
+		, #{repBcode, jdbcType=VARCHAR}
+		, #{repId, jdbcType=VARCHAR}
+		)
+		
+	</insert>
+
+</mapper>

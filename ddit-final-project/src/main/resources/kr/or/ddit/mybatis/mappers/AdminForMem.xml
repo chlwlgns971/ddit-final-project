@@ -1,0 +1,198 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.or.ddit.admin.dao.AdminManageMemDAO">
+	
+	<sql id="searchMemFrag">
+		WHERE ACC_STAT='N'
+		<trim prefix="AND (" suffix=")">
+			<if
+				test="@org.apache.commons.lang3.StringUtils@isNotBlank(simpleCondition.searchWord)">
+				<choose>
+					<when test="'name' eq simpleCondition.searchType">
+						INSTR(MEM_KLN||MEM_KFN, #{simpleCondition.searchWord}) > 0
+					</when>
+					<when test="'phone' eq simpleCondition.searchType">
+						INSTR(MEM_HPHON, #{simpleCondition.searchWord}) > 0
+					</when>
+					<otherwise>
+						
+						
+					</otherwise>
+				</choose>
+			</if>
+		</trim>
+	</sql>
+	<select id="personalMemberList" parameterType="PagingVO" resultType="PersonalMemberVO">
+		SELECT *
+		FROM(
+			SELECT A.*, ROWNUM RNUM
+			FROM(
+				SELECT	MEMBER.MEM_ID
+						,MEMBER.MEM_KLN
+						,MEMBER.MEM_KFN
+						,MEMBER.MEM_HPHON
+				FROM MEMBER MEMBER JOIN ACCOUNT ACCOUNT
+					ON MEMBER.MEM_ID=ACCOUNT.ACC_ID
+				<include refid="searchMemFrag"/>
+				ORDER BY ACCOUNT.ROWID DESC
+			)A
+		)B
+		<![CDATA[
+		WHERE RNUM>=#{startRow} AND RNUM <=#{endRow}
+		]]>
+	</select>
+	
+	<select id="retrievePMCount" resultType="int" parameterType="PagingVO">
+		SELECT	COUNT(*)
+		FROM	MEMBER JOIN ACCOUNT ON MEM_ID = ACC_ID
+		<include refid="searchMemFrag"/>
+	</select>
+	
+	
+	<select id="companyMemberList" parameterType="PagingVO" resultType="CompanyMemberVO">
+		SELECT *
+		FROM(
+		    SELECT A.*, ROWNUM RNUM
+		    FROM(
+		        SELECT	COMPANY.COM_ID
+		                ,COMPANY.COM_CNAM
+		                ,COMPANY.COM_NAM
+		                ,COMPANY.COM_RNUM
+		        FROM COMPANY COMPANY JOIN ACCOUNT ACCOUNT
+		            ON COMPANY.COM_ID=ACCOUNT.ACC_ID
+				<include refid="searchCompFrag"/>
+		        ORDER BY ACCOUNT.ROWID ASC
+		    )A
+		)B
+		<![CDATA[
+		WHERE RNUM>=#{startRow} AND RNUM <=#{endRow}
+		]]>
+	</select>
+	
+	<select id="retrieveCMCount" resultType="int" parameterType="PagingVO">
+		SELECT	COUNT(*)
+		FROM	COMPANY JOIN ACCOUNT ON COM_ID = ACC_ID
+		<include refid="searchCompFrag"/>
+	</select>
+	
+	<select id="retrieveReportCount" resultType="int" parameterType="PagingVO">
+		SELECT	COUNT(*)
+		FROM	REPORT
+		<include refid="searchReportFrag"/>
+	</select>
+	
+	<select id="reportList" resultType="ReportVO" parameterType="PagingVO">
+		
+			WITH C AS 
+			(
+			    SELECT  CAT_NAM AS REP_BCODE
+			            , REP_NUM
+			    FROM    CATEGORY JOIN REPORT ON CAT_CODE = REP_BCODE
+			)
+			SELECT *
+			FROM(
+			    SELECT A.*, ROWNUM RNUM
+			    FROM(
+			        SELECT	MEM_ID
+			            , REP_NUM
+			            , CATEGORY.CAT_NAM AS REP_CODE
+			        FROM    REPORT LEFT OUTER JOIN CATEGORY ON REP_CODE = CAT_CODE
+			        ORDER BY REP_NUM DESC
+			    )A
+			)B LEFT JOIN C ON B.REP_NUM = C.REP_NUM
+			<![CDATA[
+		WHERE RNUM>=#{startRow} AND RNUM <=#{endRow} ORDER BY RNUM
+		]]>
+			<include refid="searchReportFrag"/>
+	</select>
+	
+	<select id="getReport" parameterType="string" resultType="ReportVO">
+		SELECT	REP_NUM
+				, MEM_ID
+				, ART_NUM
+				, REP_CONT
+				, CATEGORY.CAT_NAM AS REP_CODE
+				, REP_BCODE
+				, REP_ID
+		FROM    REPORT LEFT OUTER JOIN CATEGORY ON REP_CODE = CAT_CODE
+		WHERE	REP_NUM=#{repNum}
+	</select>
+	
+	<select id="getSancCategory" resultType="CategoryVO">
+		SELECT  CAT_CODE
+		        , CATU_CODE
+		        , CAT_NAM
+		FROM	CATEGORY
+		WHERE	CATU_CODE='SANC'
+	</select>
+	<select id="getSancRow" parameterType="string" resultType="int">
+		SELECT	NVL(COUNT(*),0)
+		FROM	SANCTION
+		WHERE	REP_NUM=#{repNum}
+	</select>
+	
+	<insert id="insertSanc" parameterType="SanctionVO">
+		INSERT INTO sanction (
+		    sanc_num,
+		    sanc_code,
+		    sanc_resn,
+		    sanc_sdate,
+		    sanc_edate,
+		    rep_num,
+		    admin_id
+		) VALUES (
+		    SEQ_SANC.NEXTVAL
+		    , #{sancCode}
+		    , #{sancResn}
+		    , SYSDATE
+		    , SYSDATE+#{sancEdate}
+		    , #{repNum}
+		    , #{adminId}
+		)
+	</insert>
+	
+
+	
+	
+	
+	<sql id="searchCompFrag">
+		WHERE ACC_STAT='N'
+		<trim prefix="AND (" suffix=")">
+			<if
+				test="@org.apache.commons.lang3.StringUtils@isNotBlank(simpleCondition.searchWord)">
+				<choose>
+					<when test="'name' eq simpleCondition.searchType">
+						INSTR(MEM_NAME, #{simpleCondition.searchWord}) > 0
+					</when>
+					<when test="'address' eq simpleCondition.searchType">
+						INSTR(MEM_ADD1, #{simpleCondition.searchWord}) > 0
+					</when>
+					<otherwise>
+						INSTR(MEM_NAME, #{simpleCondition.searchWord}) > 0
+						OR
+						INSTR(MEM_ADD1, #{simpleCondition.searchWord}) > 0
+					</otherwise>
+				</choose>
+			</if>
+		</trim>
+	</sql>
+	
+	<sql id="searchReportFrag">
+		<trim prefix="AND (" suffix=")">
+			<if
+				test="@org.apache.commons.lang3.StringUtils@isNotBlank(simpleCondition.searchWord)">
+				<choose>
+					<when test="'id' eq simpleCondition.searchType">
+						INSTR(MEM_ID, #{simpleCondition.searchWord}) > 0
+					</when>
+					<when test="'repCode' eq simpleCondition.searchType">
+						INSTR(REP_CODE, #{simpleCondition.searchWord}) > 0
+					</when>
+					<when test="'repBcode' eq simpleCondition.searchType">
+						INSTR(REP_BCODE, #{simpleCondition.searchWord}) > 0
+					</when>
+				</choose>
+			</if>
+		</trim>
+	</sql>
+</mapper>

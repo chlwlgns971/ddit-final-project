@@ -1,0 +1,162 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.or.ddit.article.dao.ArticleDAO">	
+<!-- 	게시글의 목록 조회 : 페이징 + 검색(제목-title, 작성자-writer, 내용-content, 전체) -->
+	<sql id="searchFrag">
+			<if test="simpleCondition neq null and @org.apache.commons.lang3.StringUtils@isNotBlank(simpleCondition.searchWord)">
+				AND
+				<choose>
+					<when test="simpleCondition.searchType eq 'title'">
+						INSTR(ART_TITLE, #{simpleCondition.searchWord}) > 0
+					</when>
+					<when test="simpleCondition.searchType eq 'writer'">
+						INSTR(ACC_ID, #{simpleCondition.searchWord}) > 0
+					</when>
+					<when test="simpleCondition.searchType eq 'content'">
+						INSTR(ART_CONT, #{simpleCondition.searchWord}) > 0
+					</when>
+					<otherwise>
+						INSTR(ART_TITLE, #{simpleCondition.searchWord}) > 0
+						OR INSTR(ACC_ID, #{simpleCondition.searchWord}) > 0
+						OR INSTR(ART_CONT, #{simpleCondition.searchWord}) > 0
+					</otherwise>
+				</choose>
+			</if>
+	</sql>
+
+	<select id="selectTotalRecord" parameterType="PagingVO" resultType="int">
+		SELECT COUNT(*)
+		FROM ARTICLE
+		<where>
+		<include refid="searchFrag" />
+		</where>
+	</select>
+	
+	<select id="selectArticleList" parameterType="PagingVO" resultType="ArticleVO">
+		WITH SORTEDBOARD AS (
+		    SELECT ART_NUM, ART_TITLE, ACC_ID,
+		        TO_CHAR(ART_DATE, 'YY-MM-DD') ART_DATE, ART_HIT, ART_REC, ART_BCODE, ART_CCODE
+		    FROM ARTICLE
+		    <where>
+		    <include refid="searchFrag" />
+		    </where>
+		    ORDER BY ART_NUM DESC
+		), RNUMBOARD AS (
+		    SELECT ROWNUM RNUM, SORTEDBOARD.*
+		    FROM SORTEDBOARD
+		)
+		SELECT *
+		FROM RNUMBOARD
+		<![CDATA[
+			WHERE RNUM >= #{startRow} AND RNUM <= #{endRow}
+		]]>
+	</select>
+
+	<select id="selectTotalRecordOption" parameterType="PagingVO" resultType="int">
+		SELECT COUNT(*)
+		FROM ARTICLE
+		<where>
+			<if test="detailCondition.artBCode neq null">
+				ART_BCODE = #{detailCondition.artBCode}
+			</if>
+			<if test="detailCondition.artCCode neq null">
+				AND ART_CCODE = #{detailCondition.artCCode}
+			</if>
+		<include refid="searchFrag" />
+		</where>
+	</select>
+	
+	<select id="selectArticleListOption" parameterType="PagingVO" resultType="ArticleVO">
+		WITH SORTEDBOARD AS (
+		    SELECT ART_NUM, ART_TITLE, ACC_ID,
+		        TO_CHAR(ART_DATE, 'YY-MM-DD') ART_DATE, ART_HIT, ART_REC, ART_BCODE, ART_CCODE
+		    FROM ARTICLE
+		<where>
+			<include refid="searchFrag" />
+		</where>
+		    ORDER BY ART_NUM DESC
+		), RNUMBOARD AS (
+		    SELECT ROWNUM RNUM, SORTEDBOARD.*
+		    FROM SORTEDBOARD
+		    <where>
+			<if test="detailCondition.artBCode neq null">
+				SORTEDBOARD.ART_BCODE = #{detailCondition.artBCode}
+			</if>
+			<if test="detailCondition.artCCode neq null">
+				AND SORTEDBOARD.ART_CCODE = #{detailCondition.artCCode}
+			</if>
+		    </where>
+		)
+		SELECT *
+		FROM RNUMBOARD
+		<![CDATA[
+			WHERE RNUM >= #{startRow} AND RNUM <= #{endRow}
+		]]>
+	</select>
+	
+	<select id="selectArticle" parameterType="int" resultType="ArticleVO">
+		SELECT
+		    ART_NUM,    ART_TITLE,    ACC_ID,
+		    ART_CONT,    TO_CHAR(ART_DATE, 'MONTHfmDD, YYYY','NLS_DATE_LANGUAGE=ENGLISH') ART_DATE,    ART_HIT,
+		    ART_REC, ART_CCODE, ART_BCODE
+		FROM ARTICLE
+		WHERE ART_NUM = #{artNum}
+	</select>
+	
+	<update id="incrementArtHit" parameterType="int">
+		UPDATE ARTICLE
+		SET
+		ART_HIT = ART_HIT + 1
+		WHERE ART_Num = #{artNum}
+	</update>
+	<insert id="insertArticle" parameterType="ArticleVO">
+		<selectKey resultType="int" keyProperty="artNum" order="BEFORE">
+			SELECT ART_SEQ.nextval
+			FROM DUAL
+		</selectKey>
+		INSERT INTO ARTICLE
+		(
+			ART_NUM
+			, ART_TITLE
+			, ACC_ID
+			, ART_CONT
+			, ART_DATE
+			, ART_CCODE
+			, ART_BCODE
+			, ART_HIT
+			, ART_REC
+		)VALUES
+		(
+			#{artNum,jdbcType=NUMERIC}
+			, #{artTitle,jdbcType=VARCHAR}
+			, #{accId,jdbcType=VARCHAR}
+			, #{artCont,jdbcType=CLOB}
+			, SYSDATE
+			, #{artCCode,jdbcType=VARCHAR}
+			, #{artBCode,jdbcType=VARCHAR}
+			, 0
+			, 0
+		)
+	</insert>
+	<update id="updateArticle" parameterType="ArticleVO">
+		UPDATE ARTICLE
+		SET
+			ART_TITLE = #{artTitle,jdbcType=VARCHAR}
+			, ART_CONT = #{artCont,jdbcType=CLOB}
+			, ART_DATE = SYSDATE
+		WHERE ART_NUM = #{artNum}
+	</update>
+	<delete id="deleteArticle" parameterType="ArticleVO">
+		DELETE FROM ARTICLE
+		WHERE ART_NUM = #{artNum}
+		  AND ACC_ID = #{accId}
+	</delete>
+	<update id="incrementRec" parameterType="int">
+		UPDATE ARTICLE
+		SET
+		ART_REC = ART_REC + 1
+		WHERE ART_NUM = #{artNum}
+	</update>
+	
+	
+</mapper>

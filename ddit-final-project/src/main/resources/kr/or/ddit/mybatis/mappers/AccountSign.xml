@@ -1,0 +1,96 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="kr.or.ddit.account.dao.AccountSignDAO">
+
+	<!-- 일반 회원가입 -->
+	<insert id="accountReg" parameterType="kr.or.ddit.vo.AccountSignVO">
+		INSERT ALL 
+		INTO ACCOUNT (
+					  ACC_ID, ACC_PW, ACC_RDATE, ACC_STAT, MEM_CODE, ACC_IMG
+					  ) 
+			 VALUES	 (
+					  #{accId,jdbcType=VARCHAR}, #{accPw,jdbcType=VARCHAR}, SYSDATE, 'N', 'ROLE_CM', '/rest4Trip/resources/images/non_profile.png'
+					 )
+		INTO MEMBER (
+					MEM_ID, MEM_KLN, MEM_KFN, 
+					MEM_ELN, MEM_EFN, MEM_BIRTH, 
+					MEM_NAT, MEM_GEND, MEM_HPHON, 
+					MEM_PHON, MEM_MAIL, MEM_ADDR,
+					MEM_DADDR, MEM_CONS, MEM_LOGIN,
+					MEM_GRADE, MEM_EVAL, MEM_MIL, MEM_NICK
+					)
+			VALUES (
+					#{accId,jdbcType=VARCHAR}, #{memKln,jdbcType=VARCHAR}, #{memKfn,jdbcType=VARCHAR}, 
+					#{memEln,jdbcType=VARCHAR}, #{memEfn,jdbcType=VARCHAR}, #{memBirth,jdbcType=VARCHAR},
+					#{memNat,jdbcType=VARCHAR}, #{memGend,jdbcType=VARCHAR}, #{memHphon,jdbcType=VARCHAR}, 
+					#{memPhon,jdbcType=VARCHAR}, #{memMail,jdbcType=VARCHAR}, #{memAddr,jdbcType=VARCHAR},
+					#{memDaddr,jdbcType=VARCHAR}, #{memCons,jdbcType=VARCHAR}, SYSDATE,
+					'일반', '36.5', '1000', #{accId,jdbcType=VARCHAR}
+				   )
+		SELECT * FROM DUAL
+	</insert>
+	
+	<!-- 사업자 회원가입 -->
+	<insert id="accountBisReg" parameterType="kr.or.ddit.vo.AccountSignVO">
+		INSERT ALL 
+		INTO ACCOUNT (
+					  ACC_ID, ACC_PW, ACC_RDATE, ACC_STAT, MEM_CODE
+					  ) 
+			 VALUES	 (
+					  #{accId,jdbcType=VARCHAR}, #{accPw,jdbcType=VARCHAR}, SYSDATE, 'N', #{memCode,jdbcType=VARCHAR}
+					 )
+		INTO COMPANY (
+					 COM_ID, COM_CNAM, COM_HPHON, 
+					 COM_NAM, COM_PHON, COM_ADDR, COM_ADDR2, 
+					 COM_POLICY, 
+					 COM_RNUM, COM_CODE, COM_MAIL, COM_CONS, 
+					 COM_LOGIN,COM_RIMG
+					)
+			VALUES (
+					#{accId,jdbcType=VARCHAR}, #{comCnam,jdbcType=VARCHAR}, #{comHphon,jdbcType=VARCHAR}, 
+					#{comNam,jdbcType=VARCHAR}, #{comPhon,jdbcType=VARCHAR}, #{comAddr,jdbcType=VARCHAR},#{comAddr2,jdbcType=VARCHAR},
+					#{comPolicy,jdbcType=VARCHAR},
+					#{comRnum,jdbcType=VARCHAR}, 'Y', #{comMail,jdbcType=VARCHAR}, 'N', 
+					SYSDATE, #{comRimg,jdbcType=VARCHAR}
+				   )
+		SELECT * FROM DUAL
+		
+	</insert>
+	
+	<!-- 아이디 중복검사 -->
+	<select id="idCheck" resultType="int" parameterType="String">
+		SELECT COUNT(*) FROM ACCOUNT WHERE ACC_ID = #{ACC_ID}
+	</select>
+	
+	<!-- 아이디 찾기 -->
+	<select id="find_id" resultType="String" parameterType="String">
+		SELECT A.ACC_ID
+		  FROM ACCOUNT A
+		 WHERE A.ACC_ID = (
+							SELECT MEM_ID 
+							  FROM MEMBER 
+							 WHERE MEM_HPHON = #{phoneNum})
+			OR A.ACC_ID = (
+							SELECT COM_ID 
+							  FROM COMPANY 
+							 WHERE COM_HPHON = #{phoneNum})
+	</select>
+
+	<!-- 비밀번호 변경 -->
+	<update id="findPw" parameterType="kr.or.ddit.vo.AccountSignVO" >
+		UPDATE ACCOUNT
+		   SET ACC_PW = #{accPw}
+		 WHERE ACC_ID = (
+							SELECT ACC_ID
+							  FROM ACCOUNT
+							 WHERE ACC_ID = ( SELECT MEM_ID
+												FROM MEMBER
+												WHERE MEM_MAIL = #{sumMail}
+												AND MEM_ID = #{accId} )
+								OR ACC_ID = ( SELECT COM_ID
+												FROM COMPANY
+											   WHERE COM_MAIL = #{sumMail}
+												 AND COM_ID = #{accId} )
+						)
+	</update>
+</mapper>

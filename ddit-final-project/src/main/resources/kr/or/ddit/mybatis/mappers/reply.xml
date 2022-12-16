@@ -1,0 +1,114 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.or.ddit.reply.dao.ReplyDAO">
+	<select id="selectReplyList" parameterType="PagingVO" resultType="ReplyVO">
+		SELECT REPLY_NUM, REPLY_CONT
+			 , TO_CHAR(REPLY_DATE, 'MONTHfmDD, YYYY','NLS_DATE_LANGUAGE=ENGLISH') REPLY_DATE, REPLY_PNUM, REPLY_SCOPE, ART_NUM, POST_NUM, ACC_ID, REPLY_REF, REPLY_RE_STEP, REPLY_RE_LEVEL
+		FROM REPLY
+		WHERE 1 = 1
+		<choose>
+			<when test="detailCondition.artNum neq null and detailCondition.postNum eq null">
+				AND ART_NUM = #{detailCondition.artNum}
+			</when>
+			<when test="detailCondition.postNum neq null and detailCondition.artNum eq null">
+				AND POST_NUM = #{detailCondition.postNum}
+			</when>
+		</choose>
+		ORDER BY REPLY_REF DESC, REPLY_RE_STEP ASC, REPLY_RE_LEVEl ASC, REPLY_NUM DESC
+	</select>
+	
+	<select id="getBlogReplyList" parameterType="int" resultType="ReplyVO">
+		SELECT REPLY_NUM, REPLY_CONT, TO_CHAR(R.REPLY_DATE,'Mon fmDD hh24:mi:ss, YYYY','NLS_DATE_LANGUAGE=ENGLISH') REPLY_DATE
+		, REPLY_PNUM, REPLY_SCOPE, ART_NUM, POST_NUM, R.ACC_ID, REPLY_REF, REPLY_RE_STEP, REPLY_RE_LEVEL, BLOG_NICKNAME, ACC_IMG
+		FROM REPLY R INNER JOIN BLOG B ON(B.BLOG_ID = R.ACC_ID) INNER JOIN ACCOUNT A ON(R.ACC_ID = A.ACC_ID)
+		WHERE POST_NUM = #{postNum}
+		ORDER BY REPLY_NUM ASC
+	</select>
+	
+	<select id="selectCountPnum" parameterType="int" resultType="int">
+		SELECT COUNT(REPLY_NUM)
+		FROM REPLY
+		WHERE REPLY_PNUM = #{replyNum ,jdbcType=NUMERIC}
+	</select>
+	
+<!-- 	메인댓글 추가할때 -->
+<!-- 	메인댓글의 MAX수를 찾고 -->
+	<select id="selectMaxReplyRef" parameterType="int" resultType="int">
+		SELECT MAX(REPLY_REF)
+		  FROM REPLY
+		 WHERE ART_NUM =#{artNum, jdbcType=NUMERIC}
+	</select>
+	<insert id="insertReply" parameterType="ReplyVO">
+		<selectKey resultType="int" keyProperty="replyNum"
+			order="BEFORE">
+			SELECT REPLY_SEQ.nextval
+			FROM DUAL
+		</selectKey>
+		INSERT INTO REPLY
+		(
+		REPLY_NUM
+		, ART_NUM
+		, POST_NUM
+		, REPLY_CONT
+		, ACC_ID
+		, REPLY_DATE
+		, REPLY_PNUM
+		, REPLY_SCOPE
+		, REPLY_REF
+		, REPLY_RE_STEP
+		, REPLY_RE_LEVEL
+		)VALUES(
+		  #{replyNum,jdbcType=NUMERIC}
+		, #{artNum,jdbcType=NUMERIC}
+		, #{postNum, jdbcType=NUMERIC}
+		, #{replyCont,jdbcType=VARCHAR}
+		, #{accId,jdbcType=VARCHAR}
+		, SYSDATE
+		, #{replyPnum,jdbcType=NUMERIC}
+		, #{replyScope, jdbcType=VARCHAR}
+		, #{replyRef,     jdbcType=NUMERIC}
+		, #{replyReStep,  jdbcType=NUMERIC}
+		, #{replyReLevel, jdbcType=NUMERIC}
+		)
+	</insert>
+	<update id="updateReply" parameterType = "ReplyVO">
+		UPDATE REPLY
+		   SET REPLY_CONT = #{replyCont, jdbcType=VARCHAR}
+			 , REPLY_DATE = SYSDATE 
+		     , REPLY_SCOPE = #{replyScope,jdbcType=VARCHAR}
+		 WHERE REPLY_NUM = #{replyNum, jdbcType=NUMERIC}
+		   AND ACC_ID = #{accId, jdbcType=VARCHAR}
+	</update>
+	<delete id="deleteReply" parameterType="int">
+		DELETE FROM REPLY
+		 WHERE REPLY_NUM = #{replyNum, jdbcType=NUMERIC}
+	</delete>
+	
+	<select id="selectReplyCount" parameterType="ReplyVO" resultType="int">
+		SELECT COUNT(REPLY_NUM)
+		FROM 
+		<if test="postNum neq null and artNum eq null">
+		   POST_NUM = #{postNum, jdbcType=NUMERIC}
+		 </if>
+		 <if test="artNum neq null and postNum eq null">		  
+		   ART_NUM = #{artNum, jdbcType=NUMERIC}
+		 </if>		
+	</select>
+	
+
+
+	
+<!-- 	<select id="selectReply" parameterType="int" resultType="ReplyVO"> -->
+<!-- 	SELECT REPLY_NUM -->
+<!-- 		 , REPLY_CONT -->
+<!-- 		 , REPLY_DATE -->
+<!-- 		 , REPLY_PNUM -->
+<!-- 		 , REPLY_SCOPE -->
+<!-- 		 , ART_NUM -->
+<!-- 		 , ACC_ID -->
+<!-- 	  FROM REPLY -->
+<!-- 	 WHERE REPLY_NUM = #{replyNum, jdbcType=NUMERIC} -->
+<!-- 	</select> -->
+	
+
+</mapper>

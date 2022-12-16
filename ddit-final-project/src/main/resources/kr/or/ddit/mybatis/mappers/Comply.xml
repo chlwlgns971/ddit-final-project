@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="kr.or.ddit.comply.dao.ComplyDAO">
+
+	<select id="selectComplyViewList" parameterType="String"
+		resultType="ComplyVO">
+		SELECT 
+		 COMPLY_ID
+		,COMPLY_STATE
+		,TO_CHAR(COMPLY_SDATE, 'YYYY-MM-DD') AS COMPLY_SDATE
+		,TO_CHAR(COMPLY_EDATE, 'YYYY-MM-DD') AS COMPLY_EDATE
+		
+		FROM COMPLY
+		
+		WHERE MEM_ID=#{memId}
+	</select>
+
+
+	<select id="selectPostComplyViewList" parameterType="ComplyVO"
+		resultType="ComplyVO">
+		SELECT 
+		 COMPLY_ID
+		,COMPLY_STATE
+		,COMPLY_CHECK
+		,TO_CHAR(COMPLY_SDATE, 'YYYY-MM-DD') AS COMPLY_SDATE
+		,TO_CHAR(COMPLY_EDATE, 'YYYY-MM-DD') AS COMPLY_EDATE
+		FROM COMPLY
+		WHERE MEM_ID=#{memId}
+		AND
+		COMPLY_STATE=#{complyState}
+	</select>
+
+
+
+	<!-- <resultMap type="ComplyVO" id="complyMap" autoMapping="true"> -->
+	<!-- <id property="memId" column="MEM_ID" /> -->
+	<!-- <association property="memberVO" autoMapping="true" /> -->
+	<!-- </resultMap> -->
+	<select id="ComplyDetailView" parameterType="String"
+		resultType="PersonalMemberVO">
+		SELECT 
+		M.MEM_ID
+		,M.MEM_EVAL
+		,M.MEM_GRADE
+		,TO_CHAR(MEM_LOGIN,'YYYY-MM-DD') AS MEM_LOGIN
+		,M.MEM_NICK
+		,M.MEM_GEND
+		FROM 
+        MEMBER M
+		WHERE M.MEM_ID=#{memId}
+	</select>
+	
+<!-- 	<select id="updateUserDegreeCheck" parameterType="String" resultType="ComplyVO"> -->
+<!-- 		SELECT COMPLY_DEGREE -->
+<!-- 		FROM COMPLY -->
+<!-- 		WHERE M.MEM_ID=#{memId} -->
+<!-- 	</select> -->
+
+	<update id="updateUserDegree" parameterType="PersonalMemberVO">
+		UPDATE MEMBER
+		SET MEM_EVAL= MEM_EVAL + #{memDegree,jdbcType=NUMERIC}
+		WHERE
+		MEM_ID=#{memId,jdbcType=VARCHAR}
+	</update>
+	<select id="findComplyCheck" parameterType="ComplyVO" resultType="String">
+	SELECT COMPLY_CHECK
+	FROM COMPLY
+	WHERE MEM_ID=#{memId,jdbcType=VARCHAR} AND COMPLY_ID=#{complyId,jdbcType=VARCHAR} 
+	AND  TO_CHAR(COMPLY_SDATE,'YYYY-MM-DD')=#{complySdate,jdbcType=VARCHAR}
+	</select>
+	
+	<update id="updateDegreeRecord" parameterType="ComplyVO">
+		UPDATE COMPLY
+		SET    COMPLY_DEGREE=#{complyDegree,jdbcType=VARCHAR}
+		,COMPLY_CHECK=#{complyCheck,jdbcType=VARCHAR}
+		WHERE MEM_ID=#{memId,jdbcType=VARCHAR} AND COMPLY_ID=#{complyId,jdbcType=VARCHAR} 
+		AND  TO_CHAR(COMPLY_SDATE,'YYYY-MM-DD')=#{complySdate,jdbcType=VARCHAR}
+	</update>
+
+</mapper>

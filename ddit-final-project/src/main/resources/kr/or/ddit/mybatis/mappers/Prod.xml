@@ -1,0 +1,259 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="kr.or.ddit.prod.dao.ProdDAO">
+	<sql id="searchMemFrag">
+		WHERE COM_ID=#{detailMap.comId}
+		<trim prefix="AND (" suffix=")">
+			<if
+				test="@org.apache.commons.lang3.StringUtils@isNotBlank(simpleCondition.searchWord)">
+				<choose>
+					<when test="'name' eq simpleCondition.searchType">
+						WHERE=INSTR(PROD_NAM,
+						#{simpleCondition.searchWord}) > 0
+					</when>
+					<when test="'address' eq simpleCondition.searchType">
+						WHERE=INSTR(AREA_CODE,
+						#{simpleCondition.searchWord}) > 0
+					</when>
+					<otherwise>
+						WHERE=INSTR(PROD_NAM, #{simpleCondition.searchWord}) > 0
+						OR
+						WHERE=INSTR(AREA_CODE, #{simpleCondition.searchWord}) > 0
+					</otherwise>
+				</choose>
+			</if>
+		</trim>
+	</sql>
+	<select id="companyProductList" parameterType="PagingVO"
+		resultType="ProdVO">
+		SELECT *
+		FROM(
+		SELECT A.*, ROWNUM RNUM
+		FROM(
+		SELECT P.PROD_NAM
+		,P.PROD_QTY
+		,A.AREA_NAME
+		,P.PROD_NUM
+		,P.PROD_IMG
+		FROM PROD P JOIN AREA A
+		ON
+		P.AREA_CODE=A.AREA_CODE
+		<include refid="searchMemFrag" />
+		ORDER BY A.ROWID DESC
+		)A
+		)B
+		<![CDATA[
+		WHERE RNUM>=#{startRow} AND RNUM <=#{endRow}
+		]]>
+	</select>
+	<select id="searchAreaName" parameterType="AreaVO"
+		resultType="AreaVO">
+		SELECT AREA_NAME
+		FROM AREA
+		WHERE
+		AREA_CODE=#{areaCode,jdbcType=VARCHAR}
+	</select>
+	<select id="retrieveCPCount" resultType="int"
+		parameterType="PagingVO">
+		SELECT COUNT(*)
+		FROM PROD
+		<include refid="searchMemFrag" />
+	</select>
+
+	<select id="companyDetailProduct" parameterType="String"
+		resultType="ProdVO">
+		SELECT
+	</select>
+
+	<select id="SelectCompanyInfo" resultType="CompanyInfoVO"
+		parameterType="String">
+		SELECT CINFO_NUM
+		FROM COMINFO
+		WHERE
+		COM_ID=#{comId,jdbcType=VARCHAR}
+	</select>
+	<insert id="createCompanyInfo" parameterType="int">
+		<selectKey resultType="int" keyProperty="cinfoNum"
+			order="BEFORE">
+			SELECT COMPANYINFO_SEQ.NEXTVAL
+			FROM DUAL
+		</selectKey>
+		INSERT INTO
+		COMINFO (
+		CINFO_NUM
+		,CINFO_TITLE
+		,CINFO_INFO
+		,CINFO_ARATE
+		,CINFO_BCODE
+		,COM_ID
+		)
+		VALUES(
+		#{cinfoNum}
+		,#{cinfoTitle}
+		,#{cinfoInfo}
+		,#{cinfoArate}
+		,#{cinfoBcode}
+		,#{comId}
+		)
+		WHERE COM_ID=#{comId}
+	</insert>
+
+
+	<select id="selectAreaCode" parameterType="String"
+		resultType="AreaVO">
+		SELECT AREA_CODE
+		FROM AREA
+		WHERE
+		AREA_NAME=#{AreaName,jdbcType=VARCHAR}
+	</select>
+
+	<select id="CategoryList" parameterType="string"
+		resultType="CategoryVO">
+		SELECT CAT_CODE
+		, CAT_NAM
+		FROM CATEGORY
+		WHERE
+		CATU_CODE=#{catuCode,jdbcType=VARCHAR}
+	</select>
+
+	<select id="sliceCategory" parameterType="int"
+		resultType="ProdVO">
+		SELECT SUBSTR(PROD_CODE,3)
+		FROM PROD
+		WHERE PROD_NUM=
+		#{prodNum}
+
+	</select>
+
+
+
+	<insert id="insertProduct" parameterType="ProdVO">
+		INSERT INTO
+		PROD
+		(
+		PROD_NUM, PROD_NAM, PROD_QTY, PROD_CODE
+		,CINFO_NUM,AREA_CODE,
+		PROD_IMG,COM_ID
+		)
+		VALUES(
+		#{prodNum}
+		,#{prodNam,jdbcType=VARCHAR}
+		,#{prodQty,jdbcType=NUMERIC}
+		,#{prodCode,jdbcType=VARCHAR}
+		,#{cinfoNum,jdbcType=NUMERIC}
+		,#{areaCode,jdbcType=VARCHAR}
+		,#{prodImg,jdbcType=VARCHAR}
+		,#{comId,jdbcType=VARCHAR}
+		)
+	</insert>
+	<update id="hoteMainlUpdate" parameterType="ProdVO">
+		UPDATE PROD
+		SET
+		PROD_NAM =#{prodNam,jdbcType=VARCHAR}
+		,PROD_QTY=#{prodQty,jdbcType=NUMERIC}
+		,PROD_CODE
+		=#{prodCode,jdbcType=VARCHAR}
+		,CINFO_NUM =#{cinfoNum,jdbcType=NUMERIC}
+		,AREA_CODE=#{areaCode,jdbcType=VARCHAR}
+		,PROD_IMG
+		=#{prodImg,jdbcType=VARCHAR}
+		,COM_ID =#{comId,jdbcType=VARCHAR}
+		WHERE
+		PROD_NUM=#{prodNum,jdbcType=NUMERIC}
+	</update>
+
+	<select id="selectArea" parameterType="AreaVO"
+		resultType="AreaVO">
+		SELECT
+		AREA_CODE
+		,AREA_NAME
+		,NAT_CODE
+		FROM AREA
+	</select>
+
+	<resultMap type="ProdVO" id="ProdMap" autoMapping="true">
+		<id property="prodNum" column="PROD_NUM" />
+		<collection property="prodImageList" ofType="ProdImageVO"
+			autoMapping="true">
+			<id property="prodNum" column="PROD_NUM" />
+		</collection>
+	</resultMap>
+	<select id="selectProd" parameterType="int" resultMap="ProdMap">
+		SELECT
+		A.PROD_NUM, A.PROD_NAM ,A.PROD_QTY ,A.PROD_CODE
+		,A.CINFO_NUM
+		,A.AREA_CODE ,A.COM_ID
+		,B.PIMG_NAME ,B.PIMG_ONAME ,B.PIMG_SIZE
+		,B.PIMG_FSIZE ,B.PIMG_LOCAT,B.PROD_NUM,B.PIMG_EXNAME
+		FROM PROD A LEFT
+		OUTER JOIN PRODIMG B
+		ON (A.PROD_NUM = B.PROD_NUM)
+		WHERE A.PROD_NUM =
+		#{prodNum}
+	</select>
+
+	<update id="updateProd" parameterType="ProdVO">
+		UPDATE PROD
+		SET
+		PROD_NAM =
+		#{prodNam,jdbcType=VARCHAR}
+		,PROD_QTY = #{prodQty,jdbcType=NUMERIC}
+		,AREA_CODE = #{areaCode,jdbcType=VARCHAR}
+		WHERE PROD_NUM =
+		#{prodNum,jdbcType=NUMERIC}
+	</update>
+
+	<delete id="deleteProd" parameterType="int">
+		DELETE FROM PROD
+		WHERE
+		PROD_NUM = #{prodNum,jdbcType=NUMERIC}
+
+	</delete>
+
+	<select id="findThumbnail" resultType="ProdImageVO"
+		parameterType="Integer">
+		SELECT
+		PIMG_NAME ,PIMG_ONAME ,PIMG_SIZE ,PIMG_FSIZE
+		,PIMG_LOCAT ,PROD_NUM ,PIMG_EXNAME
+		FROM PRODIMG
+		WHERE
+		PROD_NUM=#{prodNum,jdbcType=NUMERIC}
+	</select>
+
+	<update id="insertThumbNail" parameterType="ProdVO">
+		UPDATE PROD
+		SET
+		PROD_IMG=#{prodImg,jdbcType=VARCHAR}
+		WHERE
+		PROD_NUM=#{prodNum,jdbcType=NUMERIC}
+	</update>
+
+
+	<select id="getProdNum" resultType="int">
+		SELECT PRODNO_SEQ.NEXTVAL
+		FROM DUAL
+	</select>
+
+	<select id="selectProdvo" parameterType="int"
+		resultType="ProdVO">
+		SELECT
+		PROD_NUM
+		,PROD_NAM
+		,PROD_QTY
+		,PROD_CODE
+		,CINFO_NUM
+		,AREA_CODE
+		,COM_ID
+		,PROD_IMG
+		FROM PROD
+		WHERE
+		PROD_NUM=#{prodNum,jdbcType=NUMERIC}
+	</select>
+	<select id="findArea" resultType="AreaVO">
+		SELECT AREA_CODE
+		,AREA_NAME
+		,NAT_CODE
+		FROM AREA
+	</select>
+
+</mapper>
