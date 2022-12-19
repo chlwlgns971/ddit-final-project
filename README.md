@@ -30,23 +30,41 @@
 ## 목차  
 
 1. [🛠 구현기능 미리보기  ](#구현기능-미리보기) 
-2. [산출물](#산출물)
-3. [데이터 베이스](#산출물)
-4. [구현 기능 상세보기](#-구현-기능-상세보기)
-    - [Header](#기능-미리보기)   
-    - [Text Style1](#text-style1)   
-    - [Text Stlye2](#text-style2)   
-    - [List](#list)      
-    - [Link](#link)   
-    - [Code Block](#code-block)   
-    - [Table](#table)   
+    - [사이트 메인화면](#사이트-메인화면)  
+    - [항공권 조회](#항공권-조회)  
+    - [호텔 예약](#호텔-예약)  
+    - [상품 결제](#상품-결제)  
+    - [커뮤니티](#커뮤니티)  
+    - [블로그 메뉴 홈](#블로그-메뉴-홈)  
+    - [개인 블로그](#개인-블로그)  
+    - [회원 마이페이지](#회원-마이페이지)  
+    - [업체 마이페이지](#업체-마이페이지)  
    
 ## 구현기능 미리보기
-1. 사이트 메인화면
+#### 사이트 메인화면
 ![메인화면](https://user-images.githubusercontent.com/96568009/208056065-014fda8b-e303-4cbc-853b-c1ee57bf4c01.jpg)
 
-2. 항공권 조회
+#### 항공권 조회
 ![localhost_rest4Trip_prod_airline](https://user-images.githubusercontent.com/96568009/208057585-2350c256-794e-4a9e-a184-28ab30f70a6a.png)
 
-3. 호텔 예약
+#### 호텔 예약
 ![image](https://user-images.githubusercontent.com/96568009/208058495-df9a120f-57df-4e51-bf5a-07bc398c91be.png)
+
+#### 상품 결제
+![localhost_rest4Trip_prod_hotelView_cinfoNum=32](https://user-images.githubusercontent.com/96568009/208347251-f8d9ef8b-fd1d-4cd8-90ff-6cfa80fa029d.png)
+
+#### 커뮤니티
+![localhost_rest4Trip_article_articleList_BC001](https://user-images.githubusercontent.com/96568009/208347418-fe057c8f-d7af-4c5b-b864-a3a69fe131c2.png)
+
+#### 블로그 메뉴 홈
+![localhost_rest4Trip_blog_blogMainPage](https://user-images.githubusercontent.com/96568009/208347741-dbfd2ee9-2ea5-4ce6-b557-2f3c9b4bc536.png)
+
+#### 개인 블로그
+![blog1](https://user-images.githubusercontent.com/96568009/208347507-bbe1145f-e75d-4923-8c47-20c5c2c6dcc5.png)
+![blog2](https://user-images.githubusercontent.com/96568009/208347518-c47c4b2b-48b2-4621-9a75-7d9e8428f42a.png)
+
+#### 회원 마이페이지
+![localhost_rest4Trip_mypage_member_personal_chargeList_what=HT1670789445116](https://user-images.githubusercontent.com/96568009/208347562-f1ff7a86-f632-4230-b039-9c1a65bc5598.png)
+
+#### 관리자 마이페이지
+![localhost_rest4Trip_mypage_admin_chartView](https://user-images.githubusercontent.com/96568009/208347585-c215c7a6-bc54-417f-bf55-3fbbcdf75b5a.png)
