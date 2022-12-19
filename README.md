@@ -167,58 +167,58 @@
 - 또한 블로그 글 작성시 이미지를 첨부한다면 업로드한 첫번째 이미지를 자바 정규식을 이용해 뽑아내서 썸네일로 저장하고, 만약 이미지가 없다면 만들어둔 'No_Image' 이미지를 썸네일로 지정한다.
 ```java
   /**
-	 * Form에서 받은 정보를 실제 DB에 반영시키는 메서드
-	 * @param blogPost 글 정보가 담긴 VO객체
-	 * @param errors 에러 정보가 담긴 객체
-	 * @param model viewName과 메세지를 담기위한 model객체
-	 * @return
-	 */
-	@PostMapping
-	@Transactional
-	public String insertBlog(
-			@Validated(InsertGroup.class) @ModelAttribute("blogPost") BlogPostVO blogPost
-			,Errors errors
-			,Principal loginInfo
-			, Model model
-		) {
-		log.info("insertBlogPostController 입력받은 객체 : {}",blogPost);
-		log.info("errors 객체 확인 : {}",errors);
-		String viewName = null;
-		String message = null;
-		if(!errors.hasErrors()) {
-			  Pattern pattern = Pattern.compile("<img[^>]*src=[\"']?([^>\"']+)[\"']?[^>]*>"); //img 태그 src 추출 정규표현식
-	      Matcher matcher = pattern.matcher(blogPost.getPostCont());  
-	      try {//글 내용중에 이미지 태그를 검색
-	          matcher.find();
-		        log.info("img src링크 : {}",matcher.group(1));
-		        blogPost.setPostThum(matcher.group(1));
-			  } catch (Exception e) {//이미지 태그가 발견되지 않았다면 catch문으로 빠짐
-				    blogPost.setPostThum("/rest4Trip/resources/images/No_image.jpg");
-			  }
-	      blogPost.setBlogId(loginInfo.getName());
-			  blogPost.setPostHit(0);
-			  blogPost.setPostRec(0);
-			  ServiceResult result = service.insertBlogPost(blogPost);
-			
-			  if(result == ServiceResult.OK) { // 포스트 insert가 성공했을 경우
-				  //파일 정보 업데이트(포스트 번호)
-				  ServiceResult updateFile = fileService.updateAttFile(loginInfo.getName(), blogPost.getPostNum(), 0);
-				  if(updateFile == ServiceResult.OK) viewName = "redirect:/blog/01/viewPost?what="+blogPost.getPostNum();
-				  else {
-					  message = "파일정보갱신실패";
-					  model.addAttribute("message",message);
-					  viewName = "redirect:/blog/01/viewPost?what="+blogPost.getPostNum();
-				  }
-			  }else{
-				  message = "등록실패";
-				  model.addAttribute("message",message);
-				  viewName = "blog/01/blogForm";
-			  }
-		 }else {
-			  viewName = "blog/01/blogForm";
-		 }
-		 return viewName;
-	}
+ * Form에서 받은 정보를 실제 DB에 반영시키는 메서드
+ * @param blogPost 글 정보가 담긴 VO객체
+ * @param errors 에러 정보가 담긴 객체
+ * @param model viewName과 메세지를 담기위한 model객체
+ * @return
+ */
+@PostMapping
+@Transactional
+public String insertBlog(
+	@Validated(InsertGroup.class) @ModelAttribute("blogPost") BlogPostVO blogPost
+	,Errors errors
+	,Principal loginInfo
+	, Model model
+) {
+	log.info("insertBlogPostController 입력받은 객체 : {}",blogPost);
+	log.info("errors 객체 확인 : {}",errors);
+	String viewName = null;
+	String message = null;
+	if(!errors.hasErrors()) {
+		Pattern pattern = Pattern.compile("<img[^>]*src=[\"']?([^>\"']+)[\"']?[^>]*>"); //img 태그 src 추출 정규표현식
+      		Matcher matcher = pattern.matcher(blogPost.getPostCont());  
+     		try {//글 내용중에 이미지 태그를 검색
+	  		matcher.find();
+			log.info("img src링크 : {}",matcher.group(1));
+			blogPost.setPostThum(matcher.group(1));
+		} catch (Exception e) {//이미지 태그가 발견되지 않았다면 catch문으로 빠짐
+			blogPost.setPostThum("/rest4Trip/resources/images/No_image.jpg");
+		}
+      		blogPost.setBlogId(loginInfo.getName());
+		blogPost.setPostHit(0);
+		blogPost.setPostRec(0);
+		ServiceResult result = service.insertBlogPost(blogPost);
+
+		if(result == ServiceResult.OK) { // 포스트 insert가 성공했을 경우
+			//파일 정보 업데이트(포스트 번호)
+			ServiceResult updateFile = fileService.updateAttFile(loginInfo.getName(), blogPost.getPostNum(), 0);
+			if(updateFile == ServiceResult.OK) viewName = "redirect:/blog/01/viewPost?what="+blogPost.getPostNum();
+			else {
+				message = "파일정보갱신실패";
+				model.addAttribute("message",message);
+				viewName = "redirect:/blog/01/viewPost?what="+blogPost.getPostNum();
+			}
+		}else{
+			message = "등록실패";
+			model.addAttribute("message",message);
+			viewName = "blog/01/blogForm";
+		}
+	 }else {
+		viewName = "blog/01/blogForm";
+	 }
+	 return viewName;
+}
 ```   
 
 <br>
@@ -230,14 +230,14 @@
 - 글 상세보기에서 수정과 삭제 버튼은 글쓴이 혹은 관리자만 보여지게 설정하였다.
 ```html
 <c:if test="${post.blogId eq principal.realUser.accId || principal.realUser.memCode eq 'ROLE_MA'}">
-  <li class="meta-tag text-gray-color me-4 mb-1" style="margin-left: 1em">
+	<li class="meta-tag text-gray-color me-4 mb-1" style="margin-left: 1em">
 		<i class="fas fa-solid fa-pen"></i>
-    <span class="ms-1 text-capitalize"><a href="${pageContext.request.contextPath }/blog/01/updatePost?what=${post.postNum }">Modify</a></span>
-  </li>
-  <li class="meta-tag text-gray-color me-4 mb-1" style='margin-left: 1em'>
-	  <i class="fa fa-trash" aria-hidden="true"></i>
+    		<span class="ms-1 text-capitalize"><a href="${pageContext.request.contextPath }/blog/01/updatePost?what=${post.postNum }">Modify</a></span>
+  	</li>
+  	<li class="meta-tag text-gray-color me-4 mb-1" style='margin-left: 1em'>
+		<i class="fa fa-trash" aria-hidden="true"></i>
 		<span class="ms-1 text-capitalize"><a href="javascript:confirmDelete();">Delete</a></span>
-  </li>
+  	</li>
 </c:if>
 ```
 
@@ -246,44 +246,44 @@
 - 추천은 Ajax 비동기로 처리된다.
 ```javascript
 let isChecked;
-	$("#recBtn").on("click", function(event){
-		let selector = $(this).data("target");
-		$.ajax({
-			url : "${pageContext.request.contextPath }/blog/postRec",
-			data : {
-				what:${post.postNum}
-			},
-			dataType : "json",
-			success : function(resp) {
-				if(resp.success){
-					$(selector).html(resp.count);
-					if(isChecked == null){
-						if(${post.isChecked} > 0){
-							$('#heart').css('color','lightgray');
-							isChecked = false;
-						}
-						else{
-							$('#heart').css('color','red');
-							isChecked = true;
-						}
+$("#recBtn").on("click", function(event){
+	let selector = $(this).data("target");
+	$.ajax({
+		url : "${pageContext.request.contextPath }/blog/postRec",
+		data : {
+			what:${post.postNum}
+		},
+		dataType : "json",
+		success : function(resp) {
+			if(resp.success){
+				$(selector).html(resp.count);
+				if(isChecked == null){
+					if(${post.isChecked} > 0){
+						$('#heart').css('color','lightgray');
+						isChecked = false;
 					}
 					else{
-						if(isChecked == true){
-							$('#heart').css('color','lightgray');
-							isChecked = false;
-						}
-						else{
-							$('#heart').css('color','red');
-							isChecked = true;
-						}
-					}	
+						$('#heart').css('color','red');
+						isChecked = true;
+					}
 				}
-			},
-			error : function(errorResp) {
-				console.log(errorResp.status);
+				else{
+					if(isChecked == true){
+						$('#heart').css('color','lightgray');
+						isChecked = false;
+					}
+					else{
+						$('#heart').css('color','red');
+						isChecked = true;
+					}
+				}	
 			}
-		});
+		},
+		error : function(errorResp) {
+			console.log(errorResp.status);
+		}
 	});
+});
 ```
 
 ![localhost_rest4Trip_blog_01_viewPost_what=321 (3)](https://user-images.githubusercontent.com/96568009/208359404-bbf6779d-4f8e-4827-bf2f-89c25706f9a7.png)
@@ -292,14 +292,14 @@ let isChecked;
 - 대상자가 아닐경우 '비밀글입니다.' 문구가 보여지게 된다.
 ```html
 <c:choose>
-    <c:when test="${replyVo.replyScope eq 'private' && (post.blogId eq principal.realUser.accId || replyVo.accId eq principal.realUser.accId)}">
-		    <p id="${replyVo.replyNum }">${replyVo.replyCont }</p>
-		</c:when>
-		<c:when test="${replyVo.replyScope eq 'private' && (post.blogId ne principal.realUser.accId && replyVo.accId ne principal.realUser.accId)&&principal.realUser.memCode ne 'ROLE_MA'}">
-		    <p><i class="fas fa-lock"></i><span id="${replyVo.replyNum }" class="ml-1">비밀글입니다.</span></p>
-		</c:when>
-		<c:otherwise>
-				<p id="${replyVo.replyNum }">${replyVo.replyCont }</p>
-		</c:otherwise>
+	<c:when test="${replyVo.replyScope eq 'private' && (post.blogId eq principal.realUser.accId || replyVo.accId eq principal.realUser.accId)}">
+		<p id="${replyVo.replyNum }">${replyVo.replyCont }</p>
+	</c:when>
+	<c:when test="${replyVo.replyScope eq 'private' && (post.blogId ne principal.realUser.accId && replyVo.accId ne principal.realUser.accId)&&principal.realUser.memCode ne 'ROLE_MA'}">
+		<p><i class="fas fa-lock"></i><span id="${replyVo.replyNum }" class="ml-1">비밀글입니다.</span></p>
+	</c:when>
+	<c:otherwise>
+		<p id="${replyVo.replyNum }">${replyVo.replyCont }</p>
+	</c:otherwise>
 </c:choose>
 ```
