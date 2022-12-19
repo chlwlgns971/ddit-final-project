@@ -38,7 +38,9 @@
     - [블로그 메뉴 홈](#블로그-메뉴-홈)  
     - [개인 블로그](#개인-블로그)  
     - [회원 마이페이지](#회원-마이페이지)  
-    - [관리자 마이페이지](#관리자-마이페이지)  
+    - [관리자 마이페이지](#관리자-마이페이지)
+2. [개발 환경](#개발-환경)
+3. [데이터 베이스](#데이터-베이스)  
    
 ## 구현기능 미리보기
 #### 사이트 메인화면
@@ -68,3 +70,14 @@
 
 #### 관리자 마이페이지
 ![localhost_rest4Trip_mypage_admin_chartView](https://user-images.githubusercontent.com/96568009/208347585-c215c7a6-bc54-417f-bf55-3fbbcdf75b5a.png)
+
+<br>
+
+## 개발 환경
+![image](https://user-images.githubusercontent.com/96568009/208348507-f51c75d0-c63a-43a1-b89d-965c9857a4d8.png) 
+![image](https://user-images.githubusercontent.com/96568009/208348662-a3b8ce3e-2fd2-4525-9b0f-ccd9dd099df7.png)
+
+<br>
+
+## 데이터 베이스
+![image](https://user-images.githubusercontent.com/96568009/208349137-805c8f2a-f11f-4949-99fc-de2e758d954b.png)
