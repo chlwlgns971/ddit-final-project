@@ -81,3 +81,69 @@
 
 ## 데이터 베이스
 ![image](https://user-images.githubusercontent.com/96568009/208349324-99c5797c-ef3b-4280-a762-bbc8eb09365a.png)
+
+## 구현 기능 상세보기
+
+>내가 구현한 기능.
+   
+### 상품결제
+![localhost_rest4Trip_booking_step1](https://user-images.githubusercontent.com/96568009/208351367-c3d37540-105f-44d2-8927-7ec00e314254.png)
+- 상품 결제 화면으로 회원이 보유한 마일리지와 보유하고 사용가능한 쿠폰정보를 불러와 화면에 표시한다.
+- 쿠폰이나 마일리지는 적용하면 비동기로 처리하여 실시간으로 적용 후의 금액이 표시된다.
+- 결제 전 비동기로 요청을 보내 실제로 사용가능한 쿠폰과 마일리지인지, 위변조는 없는지 확인하고 결제요청이 이루어진다. (계산이 맞지 않는 경우 -1 반환)
+```java
+/**
+	 * 결제하기 전 값 위조가 일어났는지 확인
+	 * @param coupon : 쿠폰번호
+	 * @param mileage : 사용마일리지
+	 * @param finalPrice : 최종결제금액
+	 * @param originalPrice : 상품의 원래 금액
+	 * @param prodCode : 상품코드
+	 * @param principal : 회원인증객체
+	 * @return 결과일치(위변조없음) : finalPrice, 결과불일치(위변조일어남) : -1
+	 */
+	@RequestMapping(value="/validate", produces=MediaType.APPLICATION_JSON_UTF8_VALUE)
+	public int validateAmount(@RequestParam(name="coupon", defaultValue="0") int coupon
+			, @RequestParam(name="mileage", defaultValue="0") int mileage
+			, @RequestParam(name="finalPrice") int finalPrice
+			, @RequestParam(name="originalPrice") int originalPrice
+			, @RequestParam(name="prodCode") String prodCode, Principal principal) {
+		  int result1 = originalPrice;
+		  if(coupon != 0) {
+			  //쿠폰을 적용한 후의 가격계산
+			  result1 = service.couponCalculation(principal.getName(), prodCode, coupon, originalPrice);
+		  }
+		  int result2 = result1;
+		  if(mileage != 0) {
+			  //마일리지를 적용한 후의 가격계산
+			  result2 = service.mileageCalculation(mileage, principal.getName(), result1);
+		  }
+		
+		  log.info("Validate result1 : {}",result1);
+		  log.info("Validate result2 : {}",result2);
+		  log.info("Validate finalPrice : {}",finalPrice);
+		  //위변조 여부 검사(쿠폰과 마일리지를 계산한 결과가 최종결제 금액과 일치하는지 검사)
+		  if(finalPrice == result2) return finalPrice;
+		  else return -1;
+	}
+```   
+<br>   
+  
+### 예약/결제 내역 조회
+![image](https://user-images.githubusercontent.com/96568009/208352802-3ae8381c-4092-437a-aef6-e360edfddf3a.png)
+![image](https://user-images.githubusercontent.com/96568009/208352838-d7970a4d-bc8f-4706-a808-51c004b6333b.png)
+
+- 예약 내역에선 상품 가격과 이용 날짜 상품명, 사진이 보여지고, 상세보기 버튼을 클릭하면 예약 상세정보와 결제 상세 내역을 확인할 수 있다.
+
+<br>
+
+### 블로그 메뉴 홈
+![localhost_rest4Trip_blog_blogMainPage](https://user-images.githubusercontent.com/96568009/208347741-dbfd2ee9-2ea5-4ce6-b557-2f3c9b4bc536.png)
+- 여행정보 사이트임을 감안하여 전체 공개된 여행카테고리의 블로그 포스트를 메인화면에 최신순으로 보여준다.
+- 오른쪽 메뉴에서 내 블로그로 접근할 수 있고, 랭킹을 도입하여 1주일동안 가장 많은 추천수, 가장 많은 조회수를 기록한 포스트를 상위 10개까지 보여주고, Subcribe에선 구독한 블로그의 최신글 최대 10개까지 보여준다.
+
+<br>
+
+### 개인 블로그
+![blog1](https://user-images.githubusercontent.com/96568009/208347507-bbe1145f-e75d-4923-8c47-20c5c2c6dcc5.png)
+![blog2](https://user-images.githubusercontent.com/96568009/208347518-c47c4b2b-48b2-4621-9a75-7d9e8428f42a.png)
