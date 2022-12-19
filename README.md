@@ -80,4 +80,4 @@
 <br>
 
 ## 데이터 베이스
-![image](https://user-images.githubusercontent.com/96568009/208349137-805c8f2a-f11f-4949-99fc-de2e758d954b.png)
+![image](https://user-images.githubusercontent.com/96568009/208349324-99c5797c-ef3b-4280-a762-bbc8eb09365a.png)
