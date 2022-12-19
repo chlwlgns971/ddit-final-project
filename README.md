@@ -303,3 +303,23 @@ $("#recBtn").on("click", function(event){
 	</c:otherwise>
 </c:choose>
 ```
+
+<br>
+
+### 여행지 페이지
+![localhost_rest4Trip_destination_view_code=FR001](https://user-images.githubusercontent.com/96568009/208361243-7c364903-f930-4650-a517-f578e7abbe26.png)
+
+- 날씨정보는 openweather API를 사용했고, API에서 기본으로 지원하는 아이콘은 조금 이상하게 생겨서 따로 날씨 아이콘을 구해 교체하는 작업을 진행했다.
+- 현재시각 기준의 현지 날씨와 현재시각 기준의 3일뒤 날씨까지 화면에 보여지도록 구성했다.
+
+![localhost_rest4Trip_destination_view_code=FR001 (1)](https://user-images.githubusercontent.com/96568009/208361701-9c1f816e-c80c-4d78-a6d6-d275ca8e2f6d.png)
+- 관광지의 경우 카드섹션으로 구성했고, 각각의 카드들을 클릭하면 modal로 상세정보가 나오도록 구현했다.
+![localhost_rest4Trip_destination_view_code=FR001 (2)](https://user-images.githubusercontent.com/96568009/208361894-f37ebd75-f19d-4a2a-aee0-7194c73a0768.png)
+
+<br>
+
+![image](https://user-images.githubusercontent.com/96568009/208362158-c9c90d80-e198-40ff-a81e-51e81e52b5f8.png)
+![localhost_rest4Trip_calender_viewMyCalenders](https://user-images.githubusercontent.com/96568009/208362231-53a20f70-0346-4ca2-9a90-b9696f25f8dc.png)
+- 여행지 정보 페이지에서 날짜를 선택하여 일정등록을 클릭하면 여행일정이 생성되고, 마이페이지-나의 여행 탭에서 확인이 가능하다.
+- 여행일정은 유럽은 빨강, 아시아는 파랑, 미주지역은 초록, 그 이외의 지역은 노란색으로 구성했다.
+
