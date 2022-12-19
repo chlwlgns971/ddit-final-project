@@ -147,3 +147,159 @@
 ### 개인 블로그
 ![blog1](https://user-images.githubusercontent.com/96568009/208347507-bbe1145f-e75d-4923-8c47-20c5c2c6dcc5.png)
 ![blog2](https://user-images.githubusercontent.com/96568009/208347518-c47c4b2b-48b2-4621-9a75-7d9e8428f42a.png)
+![localhost_rest4Trip_blog_01_blogCategoryList_id=Admin_CJH cate=2 (1)](https://user-images.githubusercontent.com/96568009/208356677-29a4ff23-f20a-4983-b946-c070f5b8c60b.png)
+![localhost_rest4Trip_blog_01_blogCategoryList_id=Admin_CJH cate=2 (2)](https://user-images.githubusercontent.com/96568009/208356680-df0dad75-e1f5-423c-b5cc-95eb309401b3.png)
+
+- 블로그에선 프로필사진, 소개글, 닉네임이 보여지며 닉네임은 블로그에서만 사용되는 기능이다. 닉네임은 블로그 관련 모든 컨텐츠에 아이디 대신 노출된다.
+- 각 카테고리로 들어가면 해당 카테고리 안에서 작성된 블로그 포스트들을 볼 수 있으며, 카테고리 이름과 이미지, 카테고리 소제목은 커스텀이 가능하도록 구현하였다.
+
+<br>
+
+![localhost_rest4Trip_blogSet_setting_id=Admin_CJH](https://user-images.githubusercontent.com/96568009/208356213-b478c36e-4517-404f-b15e-0a17208c30c7.png)
+![localhost_rest4Trip_blogSet_setting_id=Admin_CJH (1)](https://user-images.githubusercontent.com/96568009/208356225-9d1f373f-4f2f-4e97-ae13-1da11de5b7cf.png)
+
+- 설정화면에서는 소개글, 닉네임, 블로그 이름, 카테고리 수정, 소제목, 이미지 변경이 가능하여 사용자가 원하는대로 커스텀하여 나만의 블로그를 만들어 이용할 수 있도록 했다.
+
+<br>
+
+![localhost_rest4Trip_blog_01_insertPost](https://user-images.githubusercontent.com/96568009/208356978-539061e2-e594-4907-a3dd-7af0c8513ba7.png)
+- 게시글 작성은 CKEditor API를 이용하여 구현했고, 공개범위, 카테고리를 설정해서 글을 체계적으로 관리하고 모든 사람에게 공개하거나, 구독자들에게만 공개하거나, 나만 볼 수 있는 글로 공개범위를 설정할 수 있다.
+- 또한 블로그 글 작성시 이미지를 첨부한다면 업로드한 첫번째 이미지를 자바 정규식을 이용해 뽑아내서 썸네일로 저장하고, 만약 이미지가 없다면 만들어둔 'No_Image' 이미지를 썸네일로 지정한다.
+```java
+  /**
+	 * Form에서 받은 정보를 실제 DB에 반영시키는 메서드
+	 * @param blogPost 글 정보가 담긴 VO객체
+	 * @param errors 에러 정보가 담긴 객체
+	 * @param model viewName과 메세지를 담기위한 model객체
+	 * @return
+	 */
+	@PostMapping
+	@Transactional
+	public String insertBlog(
+			@Validated(InsertGroup.class) @ModelAttribute("blogPost") BlogPostVO blogPost
+			,Errors errors
+			,Principal loginInfo
+			, Model model
+		) {
+		log.info("insertBlogPostController 입력받은 객체 : {}",blogPost);
+		log.info("errors 객체 확인 : {}",errors);
+		String viewName = null;
+		String message = null;
+		if(!errors.hasErrors()) {
+			  Pattern pattern = Pattern.compile("<img[^>]*src=[\"']?([^>\"']+)[\"']?[^>]*>"); //img 태그 src 추출 정규표현식
+	      Matcher matcher = pattern.matcher(blogPost.getPostCont());  
+	      try {//글 내용중에 이미지 태그를 검색
+	          matcher.find();
+		        log.info("img src링크 : {}",matcher.group(1));
+		        blogPost.setPostThum(matcher.group(1));
+			  } catch (Exception e) {//이미지 태그가 발견되지 않았다면 catch문으로 빠짐
+				    blogPost.setPostThum("/rest4Trip/resources/images/No_image.jpg");
+			  }
+	      blogPost.setBlogId(loginInfo.getName());
+			  blogPost.setPostHit(0);
+			  blogPost.setPostRec(0);
+			  ServiceResult result = service.insertBlogPost(blogPost);
+			
+			  if(result == ServiceResult.OK) { // 포스트 insert가 성공했을 경우
+				  //파일 정보 업데이트(포스트 번호)
+				  ServiceResult updateFile = fileService.updateAttFile(loginInfo.getName(), blogPost.getPostNum(), 0);
+				  if(updateFile == ServiceResult.OK) viewName = "redirect:/blog/01/viewPost?what="+blogPost.getPostNum();
+				  else {
+					  message = "파일정보갱신실패";
+					  model.addAttribute("message",message);
+					  viewName = "redirect:/blog/01/viewPost?what="+blogPost.getPostNum();
+				  }
+			  }else{
+				  message = "등록실패";
+				  model.addAttribute("message",message);
+				  viewName = "blog/01/blogForm";
+			  }
+		 }else {
+			  viewName = "blog/01/blogForm";
+		 }
+		 return viewName;
+	}
+```   
+
+<br>
+
+![localhost_rest4Trip_blog_01_viewPost_what=321](https://user-images.githubusercontent.com/96568009/208357326-b45df521-1524-4b4b-ac5d-ae06ad7a27a8.png)
+![localhost_rest4Trip_blog_01_viewPost_what=321 (1)](https://user-images.githubusercontent.com/96568009/208357330-0568dd62-a413-4909-a493-258559efc1a6.png)
+![localhost_rest4Trip_blog_01_viewPost_what=321 (2)](https://user-images.githubusercontent.com/96568009/208357332-3bebb686-780b-4c16-a6ca-4e498c1754e9.png)
+
+- 글 상세보기에서 수정과 삭제 버튼은 글쓴이 혹은 관리자만 보여지게 설정하였다.
+```html
+<c:if test="${post.blogId eq principal.realUser.accId || principal.realUser.memCode eq 'ROLE_MA'}">
+  <li class="meta-tag text-gray-color me-4 mb-1" style="margin-left: 1em">
+		<i class="fas fa-solid fa-pen"></i>
+    <span class="ms-1 text-capitalize"><a href="${pageContext.request.contextPath }/blog/01/updatePost?what=${post.postNum }">Modify</a></span>
+  </li>
+  <li class="meta-tag text-gray-color me-4 mb-1" style='margin-left: 1em'>
+	  <i class="fa fa-trash" aria-hidden="true"></i>
+		<span class="ms-1 text-capitalize"><a href="javascript:confirmDelete();">Delete</a></span>
+  </li>
+</c:if>
+```
+
+- 추천이력은 DB에 저장되며 게시글 상세보기 클릭시 추천한 적이 있다면 빨간색 하트, 추천한 적이 없다면 회색 하트로 표현한다.
+- 추천은 아이디당 같은 게시글에 대해서 한번만 가능하며 클릭하면 추천수가 증가하고, 한번 더 누르면 추천수가 감소한다. 
+- 추천은 Ajax 비동기로 처리된다.
+```javascript
+let isChecked;
+	$("#recBtn").on("click", function(event){
+		let selector = $(this).data("target");
+		$.ajax({
+			url : "${pageContext.request.contextPath }/blog/postRec",
+			data : {
+				what:${post.postNum}
+			},
+			dataType : "json",
+			success : function(resp) {
+				if(resp.success){
+					$(selector).html(resp.count);
+					if(isChecked == null){
+						if(${post.isChecked} > 0){
+							$('#heart').css('color','lightgray');
+							isChecked = false;
+						}
+						else{
+							$('#heart').css('color','red');
+							isChecked = true;
+						}
+					}
+					else{
+						if(isChecked == true){
+							$('#heart').css('color','lightgray');
+							isChecked = false;
+						}
+						else{
+							$('#heart').css('color','red');
+							isChecked = true;
+						}
+					}	
+				}
+			},
+			error : function(errorResp) {
+				console.log(errorResp.status);
+			}
+		});
+	});
+```
+
+![localhost_rest4Trip_blog_01_viewPost_what=321 (3)](https://user-images.githubusercontent.com/96568009/208359404-bbf6779d-4f8e-4827-bf2f-89c25706f9a7.png)
+- 댓글은 일반 댓글과 답글로 구분되며, 댓글은 프로필사진, 닉네임, 작성일, 내용으로 구성된다.
+- 댓글에도 비밀글이 있으며, 비밀글 체크시 블로그 주인과 관리자만 확인이 가능하고, 답글의 경우 댓글작성자와 답글 작성자, 관리자만 확인이 가능하다.
+- 대상자가 아닐경우 '비밀글입니다.' 문구가 보여지게 된다.
+```html
+<c:choose>
+    <c:when test="${replyVo.replyScope eq 'private' && (post.blogId eq principal.realUser.accId || replyVo.accId eq principal.realUser.accId)}">
+		    <p id="${replyVo.replyNum }">${replyVo.replyCont }</p>
+		</c:when>
+		<c:when test="${replyVo.replyScope eq 'private' && (post.blogId ne principal.realUser.accId && replyVo.accId ne principal.realUser.accId)&&principal.realUser.memCode ne 'ROLE_MA'}">
+		    <p><i class="fas fa-lock"></i><span id="${replyVo.replyNum }" class="ml-1">비밀글입니다.</span></p>
+		</c:when>
+		<c:otherwise>
+				<p id="${replyVo.replyNum }">${replyVo.replyCont }</p>
+		</c:otherwise>
+</c:choose>
+```
