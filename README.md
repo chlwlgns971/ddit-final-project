@@ -1,4 +1,4 @@
-## Rest 4 Trip(종합 여행정보 사이트 프로젝트)
+## 여정(종합 여행정보 웹사이트 프로젝트)
 ![image](https://user-images.githubusercontent.com/96568009/208040462-79fbb761-da4c-44a3-8509-51077949f440.png)
 
 ## ❓ 프로젝트 제작 계기   
